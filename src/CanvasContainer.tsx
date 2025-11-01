@@ -222,7 +222,7 @@ function createNebulaTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = 512;
   canvas.height = 512;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
   if (!ctx) {
     return;
@@ -275,7 +275,7 @@ const createDisplacementTexture = (): HTMLCanvasElement => {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 256;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
   if (!ctx) {
     // Instead of returning undefined, return the canvas anyway
@@ -300,7 +300,7 @@ const createMouseDistortionTexture = (): HTMLCanvasElement => {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 256;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
   if (!ctx) {
     return canvas;
