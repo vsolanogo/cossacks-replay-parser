@@ -4,6 +4,8 @@ import { ParseResult, type GameInfo } from "./fileParser.worker";
 import "./App.css";
 import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
+import steamImg from "./images/cropped_steam_image.png";
+import { CHEATERS_LANID } from "./CHEATERS_LANID";
 type ResultRow = ParseResult & { key: string };
 
 function App() {
@@ -110,13 +112,47 @@ function App() {
   };
 
   const renderPlayers = (data?: GameInfo | null) => {
-    const players = data?.players ?? [];
+    const players = (data?.players ?? []).filter((p) => {
+      const bexists = (p as any)?.bexists === true;
+      const lanidZero = p.lanid === 0;
+      const nameStr = (p as any)?.name ? String((p as any).name) : "";
+      const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
+      // Hide obvious empty slots like: name (id: N) lanid 0 team 0 color X
+      const isEmptySlot = lanidZero && isPlaceholderName;
+      return bexists && !isEmptySlot;
+    });
     if (!players.length) return "—";
     return (
       <ul style={{ margin: 0, paddingLeft: 16 }}>
-        {players.map((p) => (
-          <li key={p.id}>
-            {p.name} (id: {p.id}) lanid {" "}
+        {players.map((p, i) => (
+          <li key={`${p.id}-${p.lanid}-${p.color}-${i}`}>
+            {p.name} (id: {p.id})
+            {(() => {
+              const sic = (p as any)?.sic as number | string | undefined;
+              const sicStr = sic != null ? String(sic) : "0";
+              if (sicStr !== "0") {
+                try {
+                  const A = 76561197960265728n;
+                  const url = `https://steamcommunity.com/profiles/${(A + BigInt(sicStr)).toString()}`;
+                  const snc = (p as any)?.snc as string | undefined;
+                  return (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={snc ? `Open Steam profile: ${snc}` : "Open Steam profile"}
+                      style={{ marginLeft: 6, display: "inline-flex", alignItems: "center", gap: 4 }}
+                    >
+                      <img src={steamImg} alt="Steam" style={{ width: 16, height: 16 }} />
+                      {snc ? <span>{snc}</span> : null}
+                    </a>
+                  );
+                } catch {
+                  return null;
+                }
+              }
+              return null;
+            })()} {" "}lanid {" "}
             {(() => {
               const namesSet = lanidNames[p.lanid] || new Set<string>();
               const namesArr = Array.from(namesSet);
@@ -125,6 +161,9 @@ function App() {
               return (
                 <span className="lanid-badge-wrapper">
                   <span className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}>{p.lanid}</span>
+                  {CHEATERS_LANID.includes(p.lanid) && (
+                    <span className="cheater-badge" title="Reported cheater">🚨 cheater</span>
+                  )}
                   {hasMultiple && (
                     <span className="lanid-tooltip" role="tooltip">
                       <div className="lanid-tooltip-title">Other names</div>
@@ -144,6 +183,8 @@ function App() {
       </ul>
     );
   };
+
+  console.log(fileResults)
 
   return (
     <div className="app-container">
