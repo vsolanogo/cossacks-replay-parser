@@ -27,5 +27,5 @@ export default defineConfig({
       },
     },
   },
-  // base: '/cossacks-replay-parser/',
+  base: '/cossacks-replay-parser/',
 });

@@ -24,6 +24,34 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("fileResults");
+      if (raw) {
+        const parsed = JSON.parse(raw) as ResultRow[];
+        if (Array.isArray(parsed)) {
+          setFileResults(parsed);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load fileResults from localStorage", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      try {
+        localStorage.setItem("fileResults", JSON.stringify(fileResults));
+      } catch (e) {
+        console.error("Failed to save fileResults to localStorage", e);
+      }
+    }, 2000);
+
+    return () => {
+      clearTimeout(handle);
+    };
+  }, [fileResults]);
+
   const processFiles = async (files: FileList | File[]) => {
     if (!workerPool) {
       console.error("Worker pool not initialized");
@@ -61,26 +89,26 @@ function App() {
               return prev;
             }
             return [
-              ...prev,
               {
                 key: `${file.name}-${Date.now()}-${Math.random()}`,
                 fileName: result.fileName,
                 data: result.data,
                 status: result.status,
               },
+              ...prev,
             ];
           });
           pop.play();
         } catch (error) {
           console.error("Error processing file:", error);
           setFileResults((prev) => [
-            ...prev,
             {
               key: `${file.name}-${Date.now()}-${Math.random()}`,
               fileName: file.name,
               data: null,
               status: "error",
             },
+            ...prev,
           ]);
         }
       };
@@ -109,6 +137,13 @@ function App() {
       // Reset input so selecting the same files again triggers change
       e.target.value = "";
     }
+  };
+
+  const clearStoredResults = () => {
+    try {
+      localStorage.removeItem("fileResults");
+    } catch {}
+    setFileResults([]);
   };
 
   const renderPlayers = (data?: GameInfo | null) => {
@@ -207,6 +242,19 @@ function App() {
             onClick={() => fileInputRef.current?.click()}
           >
             Select Files to Parse
+          </button>
+          <button
+            className="btn"
+            disabled={loading || fileResults.length === 0}
+            onClick={clearStoredResults}
+            style={{
+              backgroundColor: "#ef4444",
+              borderColor: "#dc2626",
+              color: "#fff",
+            }}
+            title={fileResults.length === 0 ? "No history to clear" : "Clear saved results"}
+          >
+            Clear History
           </button>
 
           {loading && (
