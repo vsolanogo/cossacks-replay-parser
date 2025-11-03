@@ -36,6 +36,18 @@ function App() {
             (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)
           );
           setFileResults(sorted);
+          const names: Record<string | number, Set<string>> = {};
+          for (const row of sorted) {
+            const players = (row?.data?.players ?? []) as any[];
+            for (const p of players) {
+              const key = (p as any)?.lanid as string | number;
+              const name = (p as any)?.name ? String((p as any).name) : "";
+              const existing = names[key] ? new Set(names[key]) : new Set<string>();
+              if (name) existing.add(name);
+              names[key] = existing;
+            }
+          }
+          setLanidNames(names);
         }
       } catch (e) {
         console.error("Failed to load fileResults from IndexedDB", e);
