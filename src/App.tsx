@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { WorkerPool } from "./workerPool";
+import { WorkerPool, type ParseResultStatus } from "./workerPool";
 import { ParseResult, type GameInfo } from "./fileParser.worker";
 import "./App.css";
 import { pop } from "./howler/pop";
@@ -83,6 +83,8 @@ function App() {
       const LIMIT = 30 * 1024 * 1024;
       const smallFiles = fileArray.filter((f) => f.size <= LIMIT);
       const largeFiles = fileArray.filter((f) => f.size > LIMIT);
+      // single timestamp per selection to keep the whole batch together
+      const batchTime = Date.now();
 
       const processOne = async (file: File) => {
         try {
@@ -103,35 +105,51 @@ function App() {
           }
           setFileResults((prev) => {
             const gid: string | undefined = (result?.data as any)?.gameId;
-            // de-dupe by gameId when available
-            if (gid && prev.some((r) => (r.data as any)?.gameId === gid)) {
-              return prev;
+            // de-dupe by gameId when available, but promote to top if re-uploaded
+            if (gid) {
+              const idx = prev.findIndex((r) => (r.data as any)?.gameId === gid);
+              if (idx !== -1) {
+                const existing = prev[idx];
+                const updated: typeof existing = {
+                  ...existing,
+                  uploadedAt: Date.now(),
+                  fileName: result.fileName,
+                  data: result.data,
+                  status: result.status,
+                };
+                const next = [updated, ...prev.slice(0, idx), ...prev.slice(idx + 1)];
+                return next.slice().sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
+              }
             }
             const key = gid ?? `${file.name}-${Date.now()}-${Math.random()}`;
-            return [
+            const next = [
               {
                 key,
-                uploadedAt: Date.now(),
+                uploadedAt: batchTime,
                 fileName: result.fileName,
                 data: result.data,
                 status: result.status,
               },
               ...prev,
             ];
+            return next.slice().sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
           });
           pop.play();
         } catch (error) {
           console.error("Error processing file:", error);
-          setFileResults((prev) => [
-            {
-              key: `${file.name}-${Date.now()}-${Math.random()}`,
-              uploadedAt: Date.now(),
-              fileName: file.name,
-              data: null,
-              status: "error",
-            },
-            ...prev,
-          ]);
+          setFileResults((prev) => {
+            const next = [
+              {
+                key: `${file.name}-${Date.now()}-${Math.random()}`,
+                uploadedAt: batchTime,
+                fileName: file.name,
+                data: null,
+                status: "error" as ParseResultStatus,
+              },
+              ...prev,
+            ];
+            return next.slice().sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
+          });
         }
       };
 
