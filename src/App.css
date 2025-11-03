@@ -37,6 +37,11 @@
   margin: 0 auto;
 }
 
+/* Utility: full width stack container (replaces inline style width: 100%) */
+.stack--full {
+  width: 100%;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -50,6 +55,13 @@
   cursor: pointer;
   box-shadow: 0 6px 18px rgba(123, 92, 255, 0.35);
   transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+/* Danger button (replaces inline red overrides) */
+.btn-danger {
+  background: #ef4444;
+  border: 1px solid #dc2626;
+  color: #fff;
 }
 
 .btn:disabled {
@@ -109,6 +121,30 @@
 
 .results-table tbody tr:hover {
   background: rgba(123, 92, 255, 0.12);
+}
+
+/* Players list spacing (replaces inline margin/padding on <ul>) */
+.players-list {
+  margin: 0;
+  padding-left: 16px;
+}
+
+/* Steam profile link layout (replaces inline flex + gap + margin) */
+.steam-link {
+  margin-left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.steam-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Hidden file input (replaces inline style display:none) */
+.hidden-input {
+  display: none;
 }
 
 @keyframes spin {

@@ -6,6 +6,7 @@ import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
 import steamImg from "./images/cropped_steam_image.png";
 import { CHEATERS_LANID } from "./CHEATERS_LANID";
+import { saveResults, loadResults, clearResults } from "./indexedDBUtils";
 type ResultRow = ParseResult & { key: string };
 
 function App() {
@@ -24,26 +25,29 @@ function App() {
     };
   }, []);
 
+  // Load results from IndexedDB on component mount
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("fileResults");
-      if (raw) {
-        const parsed = JSON.parse(raw) as ResultRow[];
-        if (Array.isArray(parsed)) {
-          setFileResults(parsed);
+    const loadFromIndexedDB = async () => {
+      try {
+        const results = await loadResults() as ResultRow[];
+        if (Array.isArray(results)) {
+          setFileResults(results);
         }
+      } catch (e) {
+        console.error("Failed to load fileResults from IndexedDB", e);
       }
-    } catch (e) {
-      console.error("Failed to load fileResults from localStorage", e);
-    }
+    };
+
+    loadFromIndexedDB();
   }, []);
 
+  // Save results to IndexedDB whenever fileResults changes
   useEffect(() => {
-    const handle = setTimeout(() => {
+    const handle = setTimeout(async () => {
       try {
-        localStorage.setItem("fileResults", JSON.stringify(fileResults));
+        await saveResults(fileResults);
       } catch (e) {
-        console.error("Failed to save fileResults to localStorage", e);
+        console.error("Failed to save fileResults to IndexedDB", e);
       }
     }, 2000);
 
@@ -51,6 +55,16 @@ function App() {
       clearTimeout(handle);
     };
   }, [fileResults]);
+
+  const clearStoredResults = async () => {
+    try {
+      await clearResults();
+    } catch (e) {
+      console.error("Failed to clear IndexedDB", e);
+    }
+    setFileResults([]);
+  };
+
 
   const processFiles = async (files: FileList | File[]) => {
     if (!workerPool) {
@@ -84,13 +98,15 @@ function App() {
             });
           }
           setFileResults((prev) => {
-            const gid = result?.data && (result.data as any).gameId;
+            const gid: string | undefined = (result?.data as any)?.gameId;
+            // de-dupe by gameId when available
             if (gid && prev.some((r) => (r.data as any)?.gameId === gid)) {
               return prev;
             }
+            const key = gid ?? `${file.name}-${Date.now()}-${Math.random()}`;
             return [
               {
-                key: `${file.name}-${Date.now()}-${Math.random()}`,
+                key,
                 fileName: result.fileName,
                 data: result.data,
                 status: result.status,
@@ -139,12 +155,7 @@ function App() {
     }
   };
 
-  const clearStoredResults = () => {
-    try {
-      localStorage.removeItem("fileResults");
-    } catch {}
-    setFileResults([]);
-  };
+
 
   const renderPlayers = (data?: GameInfo | null) => {
     const players = (data?.players ?? []).filter((p) => {
@@ -158,7 +169,7 @@ function App() {
     });
     if (!players.length) return "—";
     return (
-      <ul style={{ margin: 0, paddingLeft: 16 }}>
+      <ul className="players-list">
         {players.map((p, i) => (
           <li key={`${p.id}-${p.lanid}-${p.color}-${i}`}>
             {p.name} (id: {p.id})
@@ -176,9 +187,9 @@ function App() {
                       target="_blank"
                       rel="noopener noreferrer"
                       title={snc ? `Open Steam profile: ${snc}` : "Open Steam profile"}
-                      style={{ marginLeft: 6, display: "inline-flex", alignItems: "center", gap: 4 }}
+                      className="steam-link"
                     >
-                      <img src={steamImg} alt="Steam" style={{ width: 16, height: 16 }} />
+                      <img src={steamImg} alt="Steam" className="steam-icon" />
                       {snc ? <span>{snc}</span> : null}
                     </a>
                   );
@@ -227,14 +238,14 @@ function App() {
         <h2>Cossacks 3 Replays Parser</h2>
         <p>Upload `.rep` files to parse and display player info.</p>
 
-        <div className="stack" style={{ width: "100%" }}>
+        <div className="stack stack--full">
           <input
             type="file"
             ref={fileInputRef}
             accept=".rep"
             multiple
             onChange={handleFileInputChange}
-            style={{ display: "none" }}
+            className="hidden-input"
           />
           <button
             className="btn"
@@ -244,14 +255,9 @@ function App() {
             Select Files to Parse
           </button>
           <button
-            className="btn"
+            className="btn btn-danger"
             disabled={loading || fileResults.length === 0}
             onClick={clearStoredResults}
-            style={{
-              backgroundColor: "#ef4444",
-              borderColor: "#dc2626",
-              color: "#fff",
-            }}
             title={fileResults.length === 0 ? "No history to clear" : "Clear saved results"}
           >
             Clear History
