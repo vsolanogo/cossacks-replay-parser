@@ -7,7 +7,7 @@ import { successHowl } from "./howler/success";
 import steamImg from "./images/cropped_steam_image.png";
 import { CHEATERS_LANID } from "./CHEATERS_LANID";
 import { saveResults, loadResults, clearResults } from "./indexedDBUtils";
-type ResultRow = ParseResult & { key: string };
+type ResultRow = ParseResult & { key: string; uploadedAt: number };
 
 function App() {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
@@ -31,7 +31,11 @@ function App() {
       try {
         const results = await loadResults() as ResultRow[];
         if (Array.isArray(results)) {
-          setFileResults(results);
+          // Ensure consistent ordering: newest first
+          const sorted = [...results].sort(
+            (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)
+          );
+          setFileResults(sorted);
         }
       } catch (e) {
         console.error("Failed to load fileResults from IndexedDB", e);
@@ -107,6 +111,7 @@ function App() {
             return [
               {
                 key,
+                uploadedAt: Date.now(),
                 fileName: result.fileName,
                 data: result.data,
                 status: result.status,
@@ -120,6 +125,7 @@ function App() {
           setFileResults((prev) => [
             {
               key: `${file.name}-${Date.now()}-${Math.random()}`,
+              uploadedAt: Date.now(),
               fileName: file.name,
               data: null,
               status: "error",
