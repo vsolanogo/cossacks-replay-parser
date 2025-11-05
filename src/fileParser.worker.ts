@@ -77,33 +77,122 @@ self.onmessage = (e: MessageEvent<File>) => {
         players: []
       };
 
-      // --- 1) Извлекаем блоки игроков (включая все поля внутри блока) ---
-      // Берём всё от "* id <n>" до следующего "* id" или до "playersinfo" или до конца
+      // --- 1) Последовательный разбор секции players, как в C++ ---
+      const playersSectionM = text.match(/\bplayers\b([\s\S]*?)(?=\bplayersinfo\b|\bPatternList\b|\bF\b|$)/);
+      let src = playersSectionM ? playersSectionM[1] : text;
+
+      const readNext = (source: string, re: RegExp): { value: string; rest: string } => {
+        const rx = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+        const m = rx.exec(source);
+        if (!m) return { value: "", rest: source };
+        const end = m.index + m[0].length;
+        return { value: m[1], rest: source.slice(end) };
+      };
+
+      const seqPlayers: Player[] = [];
+      for (let k = 0; k < 12; k++) {
+        // read in the same order as C++ keys vector
+        const cidT = readNext(src, /cid\s+(-?\d+)/);
+        src = cidT.rest;
+        const csidT = readNext(src, /csid\s+([^\s]+)/);
+        src = csidT.rest;
+
+        // name: capture until next 'team', but do not advance past 'team' token so team is still readable
+        const nameRx = /name\s+([\s\S]*?)\s+team\b/;
+        const nameSearch = new RegExp(nameRx.source, "m");
+        const nameM = nameSearch.exec(src);
+        let nameVal = "";
+        if (nameM) {
+          nameVal = nameM[1].trim();
+          // do NOT advance past 'team' keyword; cut source only up to the start of 'team'
+          const cutPos = nameM.index + nameM[0].length - 4; // length of 'team'
+          src = src.slice(cutPos);
+        } else {
+          // Fallback: name is a single token; consume it to keep alignment
+          const nameT = readNext(src, /name\s+([^\s]+)/);
+          nameVal = nameT.value || "";
+          src = nameT.rest;
+        }
+
+        const teamT = readNext(src, /team\s+(-?\d+)/);
+        src = teamT.rest;
+        const colorT = readNext(src, /color\s+(-?\d+)/);
+        src = colorT.rest;
+        const lanidT = readNext(src, /lanid\s+(-?\d+)/);
+        src = lanidT.rest;
+        const startxT = readNext(src, /startx\s+(-?\d+)/);
+        src = startxT.rest;
+        const startyT = readNext(src, /starty\s+(-?\d+)/);
+        src = startyT.rest;
+        const aidT = readNext(src, /aidifficulty\s+(-?\d+)/);
+        src = aidT.rest;
+        const bexistsT = readNext(src, /bexists\s+(true|false)/);
+        src = bexistsT.rest;
+        const baiT = readNext(src, /bai\s+(true|false)/);
+        src = baiT.rest;
+        const bhumanT = readNext(src, /bhuman\s+(true|false)/);
+        src = bhumanT.rest;
+        const bclosedT = readNext(src, /bclosed\s+(true|false)/);
+        src = bclosedT.rest;
+        const breadyT = readNext(src, /bready\s+(true|false)/);
+        src = breadyT.rest;
+        const bloadedT = readNext(src, /bloaded\s+(true|false)/);
+        src = bloadedT.rest;
+        const bleaveT = readNext(src, /bleave\s+(true|false)/);
+        src = bleaveT.rest;
+
+        const player: Player = {
+          id: k,
+          cid: cidT.value ? parseInt(cidT.value, 10) : NaN,
+          csid: csidT.value || "",
+          name: nameVal || csidT.value || "",
+          team: teamT.value ? parseInt(teamT.value, 10) : 0,
+          color: colorT.value ? parseInt(colorT.value, 10) : 0,
+          lanid: lanidT.value ? parseInt(lanidT.value, 10) : 0,
+          startx: startxT.value ? parseInt(startxT.value, 10) : 0,
+          starty: startyT.value ? parseInt(startyT.value, 10) : 0,
+          aidifficulty: aidT.value ? parseInt(aidT.value, 10) : 0,
+          bexists: bexistsT.value === "true",
+          bai: baiT.value === "true",
+          bhuman: bhumanT.value === "true",
+          bclosed: bclosedT.value === "true",
+          bready: breadyT.value === "true",
+          bloaded: bloadedT.value === "true",
+          bleave: bleaveT.value === "true",
+        };
+        seqPlayers.push(player);
+      }
+
+      // --- 1b) Альтернативный парсинг по блокам * id ... (fallback) ---
+      const playersSection = playersSectionM ? playersSectionM[1] : text;
       const playerBlockRegex = /(\* id \d+[\s\S]*?)(?=\* id |\bplayersinfo\b|$)/g;
       let blockMatch: RegExpExecArray | null;
       const playerBlocks: string[] = [];
-      while ((blockMatch = playerBlockRegex.exec(text)) !== null) {
+      while ((blockMatch = playerBlockRegex.exec(playersSection)) !== null) {
         playerBlocks.push(blockMatch[1]);
       }
 
-      // Функция очистки имени для более надёжного сравнения (убирает цветовые теги типа %color(...)% и лишние пробелы)
-      const normalizeName = (s: string | undefined) =>
-        (s ?? "").replace(/%color\([^\)]*\)%/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
+      const lastGroup = (s: string, re: RegExp): string | undefined => {
+        let m: RegExpExecArray | null;
+        let last: string | undefined;
+        const rx = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
+        while ((m = rx.exec(s)) !== null) last = m[1];
+        return last;
+      };
 
-      for (const block of playerBlocks) {
-        // Внутри блока ищем конкретные поля (без предположения о строгом порядке)
+      const blkPlayers: Player[] = [];
+      for (let idx = 0; idx < playerBlocks.length; idx++) {
+        const block = playerBlocks[idx];
         const idM = block.match(/\* id (\-?\d+)/);
-        const cidM = block.match(/cid (\-?\d+)/);
-        // csid может отсутствовать как отдельный токен, но мы попробуем извлечь любое слово после "csid" или "csid name"
+        const cidStr = lastGroup(block, /cid\s+(-?\d+)/g);
         const csidM = block.match(/csid\s+([^\s]+)/);
-        // Имя берём между "name" и "team" (может содержать пробелы)
         const nameM = block.match(/name\s+([\s\S]*?)\s+team\b/);
-        const teamM = block.match(/team\s+(\-?\d+)/);
-        const colorM = block.match(/color\s+(\-?\d+)/);
-        const lanidM = block.match(/lanid\s+(\-?\d+)/);
-        const startxM = block.match(/startx\s+(\-?\d+)/);
-        const startyM = block.match(/starty\s+(\-?\d+)/);
-        const aidM = block.match(/aidifficulty\s+(\-?\d+)/);
+        const teamStr = lastGroup(block, /team\s+(-?\d+)/g);
+        const colorStr = lastGroup(block, /color\s+(-?\d+)/g);
+        const lanidStr = lastGroup(block, /lanid\s+(-?\d+)/g);
+        const startxStr = lastGroup(block, /startx\s+(-?\d+)/g);
+        const startyStr = lastGroup(block, /starty\s+(-?\d+)/g);
+        const aidStr = lastGroup(block, /aidifficulty\s+(-?\d+)/g);
         const bexistsM = block.match(/bexists\s+(true|false)/);
         const baiM = block.match(/bai\s+(true|false)/);
         const bhumanM = block.match(/bhuman\s+(true|false)/);
@@ -112,17 +201,17 @@ self.onmessage = (e: MessageEvent<File>) => {
         const bloadedM = block.match(/bloaded\s+(true|false)/);
         const bleaveM = block.match(/bleave\s+(true|false)/);
 
-        const player: Player = {
-          id: idM ? parseInt(idM[1], 10) : -1,
-          cid: cidM ? parseInt(cidM[1], 10) : NaN,
+        const p: Player = {
+          id: idM ? parseInt(idM[1], 10) : idx,
+          cid: cidStr != null ? parseInt(cidStr, 10) : NaN,
           csid: csidM ? csidM[1] : "",
           name: nameM ? nameM[1].trim() : (csidM ? csidM[1] : ""),
-          team: teamM ? parseInt(teamM[1], 10) : 0,
-          color: colorM ? parseInt(colorM[1], 10) : 0,
-          lanid: lanidM ? parseInt(lanidM[1], 10) : 0,
-          startx: startxM ? parseInt(startxM[1], 10) : 0,
-          starty: startyM ? parseInt(startyM[1], 10) : 0,
-          aidifficulty: aidM ? parseInt(aidM[1], 10) : 0,
+          team: teamStr != null ? parseInt(teamStr, 10) : 0,
+          color: colorStr != null ? parseInt(colorStr, 10) : 0,
+          lanid: lanidStr != null ? parseInt(lanidStr, 10) : 0,
+          startx: startxStr != null ? parseInt(startxStr, 10) : 0,
+          starty: startyStr != null ? parseInt(startyStr, 10) : 0,
+          aidifficulty: aidStr != null ? parseInt(aidStr, 10) : 0,
           bexists: bexistsM ? bexistsM[1] === "true" : false,
           bai: baiM ? baiM[1] === "true" : false,
           bhuman: bhumanM ? bhumanM[1] === "true" : false,
@@ -131,9 +220,13 @@ self.onmessage = (e: MessageEvent<File>) => {
           bloaded: bloadedM ? bloadedM[1] === "true" : false,
           bleave: bleaveM ? bleaveM[1] === "true" : false,
         };
-
-        gameInfo.players.push(player);
+        blkPlayers.push(p);
       }
+
+      // Choose the better parsed result: prioritize more bexists===true
+      const countExists = (arr: Player[]) => arr.reduce((acc, p) => acc + (p.bexists ? 1 : 0), 0);
+      const chosen = countExists(blkPlayers) > countExists(seqPlayers) ? blkPlayers : seqPlayers;
+      gameInfo.players.push(...chosen);
 
       // --- 2) Извлекаем playersinfo блок и отдельные записи sic ---
       const playersInfoSectionM = text.match(/\bplayersinfo\b([\s\S]*?)(?=\bPatternList\b|\bF\b|$)/);
@@ -186,6 +279,8 @@ self.onmessage = (e: MessageEvent<File>) => {
       const usedPlayerIdx = new Set<number>();
 
       // helper: try match by name (case-insensitive, normalized)
+      const normalizeName = (s: string | undefined) =>
+        (s ?? "").replace(/%color\([^\)]*\)%/gi, "").replace(/\s+/g, " ").trim().toLowerCase();
       const nameToPlayerIndex = new Map<string, number[]>();
       gameInfo.players.forEach((p, idx) => {
         const n = normalizeName(p.name);

@@ -4,9 +4,8 @@ import { ParseResult, type GameInfo } from "./fileParser.worker";
 import "./App.css";
 import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
-import steamImg from "./images/cropped_steam_image.png";
-import { CHEATERS_LANID } from "./CHEATERS_LANID";
 import { saveResults, loadResults, clearResults } from "./indexedDBUtils";
+import { PlayersList } from "./PlayersList";
 type ResultRow = ParseResult & { key: string; uploadedAt: number };
 
 function App() {
@@ -193,78 +192,7 @@ function App() {
 
 
 
-  const renderPlayers = (data?: GameInfo | null) => {
-    const players = (data?.players ?? []).filter((p) => {
-      const bexists = (p as any)?.bexists === true;
-      const lanidZero = p.lanid === 0;
-      const nameStr = (p as any)?.name ? String((p as any).name) : "";
-      const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
-      // Hide obvious empty slots like: name (id: N) lanid 0 team 0 color X
-      const isEmptySlot = lanidZero && isPlaceholderName;
-      return bexists && !isEmptySlot;
-    });
-    if (!players.length) return "—";
-    return (
-      <ul className="players-list">
-        {players.map((p, i) => (
-          <li key={`${p.id}-${p.lanid}-${p.color}-${i}`}>
-            {p.name} (id: {p.id})
-            {(() => {
-              const sic = (p as any)?.sic as number | string | undefined;
-              const sicStr = sic != null ? String(sic) : "0";
-              if (sicStr !== "0") {
-                try {
-                  const A = 76561197960265728n;
-                  const url = `https://steamcommunity.com/profiles/${(A + BigInt(sicStr)).toString()}`;
-                  const snc = (p as any)?.snc as string | undefined;
-                  return (
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title={snc ? `Open Steam profile: ${snc}` : "Open Steam profile"}
-                      className="steam-link"
-                    >
-                      <img src={steamImg} alt="Steam" className="steam-icon" />
-                      {snc ? <span>{snc}</span> : null}
-                    </a>
-                  );
-                } catch {
-                  return null;
-                }
-              }
-              return null;
-            })()} {" "}lanid {" "}
-            {(() => {
-              const namesSet = lanidNames[p.lanid] || new Set<string>();
-              const namesArr = Array.from(namesSet);
-              const hasMultiple = namesArr.length > 1;
-              const otherNames = namesArr.filter((n) => n !== p.name);
-              return (
-                <span className="lanid-badge-wrapper">
-                  <span className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}>{p.lanid}</span>
-                  {CHEATERS_LANID.includes(p.lanid) && (
-                    <span className="cheater-badge" title="Reported cheater">🚨 cheater</span>
-                  )}
-                  {hasMultiple && (
-                    <span className="lanid-tooltip" role="tooltip">
-                      <div className="lanid-tooltip-title">Other names</div>
-                      <ul className="lanid-tooltip-list">
-                        {otherNames.map((n) => (
-                          <li key={n}>{n}</li>
-                        ))}
-                      </ul>
-                    </span>
-                  )}
-                </span>
-              );
-            })()}
-            {" "}team {p.team} color {p.color}
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  // moved players rendering into PlayersList component
 
   console.log(fileResults)
 
@@ -320,7 +248,9 @@ function App() {
                   <tr key={row.key}>
                     <td>{idx + 1}</td>
                     <td>{row.fileName}</td>
-                    <td>{renderPlayers(row.data)}</td>
+                    <td>
+                      <PlayersList data={row.data} lanidNames={lanidNames} />
+                    </td>
                     <td>{row.status}</td>
                   </tr>
                 ))}

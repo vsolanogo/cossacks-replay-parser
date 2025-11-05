@@ -1,5 +1,6 @@
 .app-container {
-  max-width: 1200px;
+  max-width: none; /* allow full-width on large screens */
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
@@ -8,6 +9,7 @@
 .main-card {
   margin-top: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* enable horizontal scroll if content (table) is wider */
 }
 
 .results-table {
@@ -68,6 +70,30 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+/* Color chip (was inline style) */
+.color-chip {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.25) inset;
+}
+
+.color-0 { background-color: rgb(252, 3, 3); }
+.color-1 { background-color: rgb(11, 3, 252); }
+.color-2 { background-color: rgb(3, 244, 252); }
+.color-3 { background-color: rgb(175, 0, 250); }
+.color-4 { background-color: rgb(245, 113, 12); }
+.color-5 { background-color: rgb(47, 217, 4); }
+.color-6 { background-color: rgb(252, 250, 250); }
+.color-7 { background-color: rgb(247, 65, 250); }
+.color-8 { background-color: rgb(238, 255, 0); }
+.color-9 { background-color: rgb(56, 35, 176); }
+.color-10 { background-color: rgb(145, 255, 149); }
+.color-11 { background-color: rgb(99, 53, 7); }
 
 .btn:not(:disabled):hover {
   transform: translateY(-1px);
@@ -295,4 +321,25 @@
 @keyframes cheater-stripes {
   0% { background-position: 0 0; }
   100% { background-position: 200px 0; }
+}
+
+/* Extra Steam links highlight (replaces inline styles) */
+.steam-extras {
+  border: 1px solid rgba(30, 144, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.15) inset;
+  padding: 2px 6px;
+  border-radius: 8px;
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.steam-extras__pill {
+  background-color: rgba(30, 144, 255, 0.1);
+  color: #1e90ff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 6px;
 }
