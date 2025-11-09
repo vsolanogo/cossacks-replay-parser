@@ -12,7 +12,7 @@ export type CanvasContainerHandle = {
 
 const canvasContainerName = "canvas-container";
 const CanvasContainerComponent = () => {
-  const [render, setRender] = useState(false);
+  const { 0: render, 1: setRender } = useState(false);
 
   useEffect(() => {
     if (!render) {

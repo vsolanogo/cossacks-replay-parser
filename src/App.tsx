@@ -9,11 +9,11 @@ import { PlayersList } from "./PlayersList";
 type ResultRow = ParseResult & { key: string; uploadedAt: number };
 
 function App() {
-  const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
-  const [fileResults, setFileResults] = useState<ResultRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { 0: workerPool, 1: setWorkerPool } = useState<WorkerPool | null>(null);
+  const { 0: fileResults, 1: setFileResults } = useState<ResultRow[]>([]);
+  const { 0: loading, 1: setLoading } = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [lanidNames, setLanidNames] = useState<Record<string | number, Set<string>>>({});
+  const { 0: lanidNames, 1: setLanidNames } = useState<Record<string | number, Set<string>>>({});
 
   useEffect(() => {
     const pool = new WorkerPool();
