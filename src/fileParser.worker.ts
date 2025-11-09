@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 declare const self: DedicatedWorkerGlobalScope;
 
-type ParseResultStatus = "completed" | "error";
+export type ParseResultStatus = "completed" | "error";
 
 export interface ParseResult {
   fileName: string;
@@ -59,7 +59,7 @@ self.onmessage = (e: MessageEvent<File>) => {
   reader.onload = (event: ProgressEvent<FileReader>) => {
     try {
       let text: string = (event.target?.result ?? "") as string;
-      // Оставляем printable ASCII — как раньше
+      // Keep printable ASCII — as before
       text = text.replace(/[^ -~]+/g, " ");
 
       const gameMatch = mapRegex.exec(text);
@@ -77,7 +77,7 @@ self.onmessage = (e: MessageEvent<File>) => {
         players: []
       };
 
-      // --- 1) Последовательный разбор секции players, как в C++ ---
+      // --- 1) Sequential parsing of players section, as in C++ ---
       const playersSectionM = text.match(/\bplayers\b([\s\S]*?)(?=\bplayersinfo\b|\bPatternList\b|\bF\b|$)/);
       let src = playersSectionM ? playersSectionM[1] : text;
 
@@ -163,7 +163,7 @@ self.onmessage = (e: MessageEvent<File>) => {
         seqPlayers.push(player);
       }
 
-      // --- 1b) Альтернативный парсинг по блокам * id ... (fallback) ---
+      // --- 1b) Alternative parsing by * id blocks ... (fallback) ---
       const playersSection = playersSectionM ? playersSectionM[1] : text;
       const playerBlockRegex = /(\* id \d+[\s\S]*?)(?=\* id |\bplayersinfo\b|$)/g;
       let blockMatch: RegExpExecArray | null;
@@ -228,7 +228,7 @@ self.onmessage = (e: MessageEvent<File>) => {
       const chosen = countExists(blkPlayers) > countExists(seqPlayers) ? blkPlayers : seqPlayers;
       gameInfo.players.push(...chosen);
 
-      // --- 2) Извлекаем playersinfo блок и отдельные записи sic ---
+      // --- 2) Extract playersinfo block and individual sic entries ---
       const playersInfoSectionM = text.match(/\bplayersinfo\b([\s\S]*?)(?=\bPatternList\b|\bF\b|$)/);
       const playersInfoEntries: Array<{
         sic: number;
@@ -243,7 +243,7 @@ self.onmessage = (e: MessageEvent<File>) => {
 
       if (playersInfoSectionM) {
         const infoText = playersInfoSectionM[1];
-        // Выделяем каждую запись, начинающуюся с "* sic"
+        // Extract each entry starting with "* sic"
         const infoEntryRegex = /(\* sic [\s\S]*?)(?=\* sic |\n\*|$)/g;
         let infoMatch: RegExpExecArray | null;
         while ((infoMatch = infoEntryRegex.exec(infoText)) !== null) {
@@ -253,7 +253,7 @@ self.onmessage = (e: MessageEvent<File>) => {
           const si2M = entry.match(/si2\s+(\d+)/);
           const si3M = entry.match(/si3\s+(\d+)/);
           const sncM = entry.match(/snc\s+([^\s]+)/);
-          // sn* могут быть пустыми или отсутствовать
+          // sn* can be empty or absent
           const sn1M = entry.match(/sn1\s+([^\s]+)/);
           const sn2M = entry.match(/sn2\s+([^\s]+)/);
           const sn3M = entry.match(/sn3\s+([^\s]+)/);
@@ -271,11 +271,11 @@ self.onmessage = (e: MessageEvent<File>) => {
         }
       }
 
-      // --- 3) Сопоставляем playersInfoEntries с игроками ---
-      // Стратегия:
-      // 1) По snc ↔ normalizeName(player.name)
-      // 2) По cid совпадению (если snc пустой)
-      // 3) fallback: по порядку (index)
+      // --- 3) Match playersInfoEntries with players ---
+      // Strategy:
+      // 1) By snc ↔ normalizeName(player.name)
+      // 2) By cid match (if snc is empty)
+      // 3) fallback: by order (index)
       const usedPlayerIdx = new Set<number>();
 
       // helper: try match by name (case-insensitive, normalized)
@@ -342,7 +342,7 @@ self.onmessage = (e: MessageEvent<File>) => {
         }
       }
 
-      // Очистка временных больших строк
+      // Cleanup temporary large strings
       text = "";
 
       const result: ParseResult = {

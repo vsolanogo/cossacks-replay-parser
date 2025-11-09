@@ -12,6 +12,7 @@ export default defineConfig({
     }),
   ],
   build: {
+    target: "es2019",
     minify: "terser",
     terserOptions: {
       compress: {

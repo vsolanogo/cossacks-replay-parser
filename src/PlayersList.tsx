@@ -56,7 +56,7 @@ const nationName = (cid: number | undefined): string => {
 
 export type PlayersListProps = {
   data?: GameInfo | null;
-  lanidNames: Record<string | number, Set<string>>;
+  lanidNames: Record<string | number, string[]>;
 };
 
 export const PlayersList: React.FC<PlayersListProps> = ({ data, lanidNames }) => {
@@ -104,8 +104,7 @@ export const PlayersList: React.FC<PlayersListProps> = ({ data, lanidNames }) =>
             return null;
           })()} {" "}lanid {" "}
           {(() => {
-            const namesSet = lanidNames[p.lanid] || new Set<string>();
-            const namesArr = Array.from(namesSet);
+            const namesArr = lanidNames[p.lanid] ?? [];
             const hasMultiple = namesArr.length > 1;
             const otherNames = namesArr.filter((n) => n !== p.name);
             return (

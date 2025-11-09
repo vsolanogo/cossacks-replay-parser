@@ -48,10 +48,10 @@ export class WorkerPool {
   private processQueue() {
     if (this.queue.length === 0) return;
 
-    // ищем свободного воркера
+    // find a free worker
     const workerIndex = this.workers.findIndex((w) => !w.busy);
 
-    if (workerIndex === -1) return; // все заняты, ждём
+    if (workerIndex === -1) return; // all busy, wait
 
     const worker = this.workers[workerIndex];
     worker.busy = true;
@@ -64,10 +64,10 @@ export class WorkerPool {
 
       task.resolve(e.data);
 
-      // terminate старого воркера, чтобы освободить память
+      // terminate old worker to free memory
       worker.terminate();
 
-      // создаём новый воркер на его место
+      // create new worker in its place
       const newWorker = new Worker(
         new URL("./fileParser.worker.ts", import.meta.url)
       ) as BusyWorker;
