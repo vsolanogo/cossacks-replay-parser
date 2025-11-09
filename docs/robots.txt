@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vsolanogo.github.io/cossacks-replay-parser/sitemap.xml
