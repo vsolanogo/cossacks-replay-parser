@@ -105,7 +105,7 @@ const useFileResults = () => {
         return next;
       });
     }
-    
+
     setFileResults((prev) => {
       const gid: string | undefined = result?.data?.gameId;
       // de-dupe by gameId when available, but promote to top if re-uploaded
@@ -191,11 +191,11 @@ const processFile = async (
 };
 
 // File input component
-const FileInput = ({ 
-  fileInputRef, 
-  loading, 
-  onFileSelect 
-}: { 
+const FileInput = ({
+  fileInputRef,
+  loading,
+  onFileSelect
+}: {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   loading: boolean;
   onFileSelect: (files: FileList) => void;
@@ -231,11 +231,11 @@ const FileInput = ({
 };
 
 // Clear history button component
-const ClearHistoryButton = ({ 
-  loading, 
-  hasResults, 
-  onClearHistory 
-}: { 
+const ClearHistoryButton = ({
+  loading,
+  hasResults,
+  onClearHistory
+}: {
   loading: boolean;
   hasResults: boolean;
   onClearHistory: () => void;
@@ -253,10 +253,10 @@ const ClearHistoryButton = ({
 };
 
 // Results table component
-const ResultsTable = ({ 
-  fileResults, 
-  lanidNames 
-}: { 
+const ResultsTable = ({
+  fileResults,
+  lanidNames
+}: {
   fileResults: ResultRow[];
   lanidNames: Record<string, string[]>;
 }) => {
@@ -354,16 +354,16 @@ function App() {
         <p>Upload `.rep` files to parse and display player info.</p>
 
         <div className="stack stack--full">
-          <FileInput 
-            fileInputRef={fileInputRef} 
-            loading={loading} 
-            onFileSelect={processFiles} 
+          <FileInput
+            fileInputRef={fileInputRef}
+            loading={loading}
+            onFileSelect={processFiles}
           />
-          
-          <ClearHistoryButton 
-            loading={loading} 
-            hasResults={fileResults.length > 0} 
-            onClearHistory={clearAllResults} 
+
+          <ClearHistoryButton
+            loading={loading}
+            hasResults={fileResults.length > 0}
+            onClearHistory={clearAllResults}
           />
 
           {loading && (
@@ -373,9 +373,9 @@ function App() {
           )}
 
           {fileResults.length > 0 && (
-            <ResultsTable 
-              fileResults={fileResults} 
-              lanidNames={lanidNames} 
+            <ResultsTable
+              fileResults={fileResults}
+              lanidNames={lanidNames}
             />
           )}
         </div>
