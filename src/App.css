@@ -9,6 +9,8 @@
 .main-card {
   margin-top: 2rem;
   overflow: visible; /* allow the card to grow with its contents */
+  position: relative;
+  z-index: 1;
 }
 
 .results-table {
@@ -26,7 +28,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
-  backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px); */
   color: #f2f4f8;
 }
 
@@ -182,6 +184,7 @@
     left: 0;
     width: 100%;
     height: 100%;
+    z-index: 0;
 }
 
 /* Badge style for LAN ID */
@@ -300,7 +303,6 @@
       rgba(255, 255, 255, 0.0) 6px,
       rgba(255, 255, 255, 0.0) 14px
     );
-  mix-blend-mode: overlay;
   pointer-events: none;
   animation: cheater-stripes 3.6s linear infinite;
 }
