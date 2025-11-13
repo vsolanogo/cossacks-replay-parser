@@ -13,9 +13,9 @@ const config = {
       precompress: false,
       strict: true
     }),
-    paths: {
-      base: '/cossacks-replay-parser'
-    }
+    // paths: {
+    //   base: '/cossacks-replay-parser/'
+    // }
   }
 };
 
