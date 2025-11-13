@@ -296,7 +296,7 @@
 </script>
 
 <div bind:this={containerElement} id="canvas-container"></div>
-<style>
+<!-- <style>
   #canvas-container {
     position: fixed;
     top: 0;
@@ -305,4 +305,4 @@
     height: 100%;
     z-index: -1;
   }
-</style>
+</style> -->

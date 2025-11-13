@@ -5,6 +5,7 @@
   import { pop, successHowl } from '$lib/sounds';
   import PlayersList from '$lib/components/PlayersList.svelte';
   import type { ResultRow, ParseResult } from '$lib/types';
+  // export const prerender = true;
 
   let workerPool: WorkerPool | null = null;
   let fileResults: ResultRow[] = [];
@@ -287,9 +288,9 @@
   </div>
 </div>
 
-<style>
+<!-- <style>
   .app-container {
     position: relative;
     z-index: 1;
   }
-</style>
+</style> -->

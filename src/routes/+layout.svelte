@@ -54,7 +54,7 @@
 <CanvasContainer />
 <FPSCounter />
 
-<style>
+<!-- <style>
   :global(body) {
     margin: 0;
     padding: 0;
@@ -64,4 +64,4 @@
     position: relative;
     z-index: 1;
   }
-</style>
+</style> -->
