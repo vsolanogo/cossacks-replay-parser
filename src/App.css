@@ -1,5 +1,75 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  justify-content: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
 .app-container {
-  max-width: none; /* allow full-width on large screens */
+  max-width: none;
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
@@ -9,19 +79,17 @@
 .main-card {
   margin-top: 2rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* enable horizontal scroll if content (table) is wider */
+  overflow-x: auto;
 }
 
 .results-table {
   margin-top: 1.5rem;
 }
 
-/* Ant Design theme overrides */
 :root {
   --primary-color: #1677ff;
 }
 
-/* New styles for pure React UI */
 .card {
   background: rgba(15, 15, 30, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -39,7 +107,6 @@
   margin: 0 auto;
 }
 
-/* Utility: full width stack container (replaces inline style width: 100%) */
 .stack--full {
   width: 100%;
 }
@@ -59,7 +126,6 @@
   transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
 }
 
-/* Danger button (replaces inline red overrides) */
 .btn-danger {
   background: #ef4444;
   border: 1px solid #dc2626;
@@ -71,7 +137,6 @@
   cursor: not-allowed;
 }
 
-/* Color chip (was inline style) */
 .color-chip {
   display: inline-block;
   width: 12px;
@@ -149,13 +214,11 @@
   background: rgba(123, 92, 255, 0.12);
 }
 
-/* Players list spacing (replaces inline margin/padding on <ul>) */
 .players-list {
   margin: 0;
   padding-left: 16px;
 }
 
-/* Steam profile link layout (replaces inline flex + gap + margin) */
 .steam-link {
   margin-left: 6px;
   display: inline-flex;
@@ -168,7 +231,6 @@
   height: 16px;
 }
 
-/* Hidden file input (replaces inline style display:none) */
 .hidden-input {
   display: none;
 }
@@ -185,7 +247,6 @@
     height: 100%;
 }
 
-/* Badge style for LAN ID */
 .lanid-badge {
   display: inline-block;
   padding: 0.1rem 0.4rem;
@@ -265,7 +326,6 @@
   100% { background-position: 100% 0; }
 }
 
-/* Cheater badge with animated wavy background */
 .cheater-badge {
   position: relative;
   margin-left: 6px;
@@ -323,7 +383,6 @@
   100% { background-position: 200px 0; }
 }
 
-/* Extra Steam links highlight (replaces inline styles) */
 .steam-extras {
   border: 1px solid rgba(30, 144, 255, 0.6);
   box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.15) inset;
@@ -342,4 +401,15 @@
   font-weight: 600;
   padding: 1px 4px;
   border-radius: 6px;
+}
+
+/* Устанавливаем z-index для канваса, чтобы он был на заднем плане */
+#canvas-container {
+  z-index: -1;
+}
+
+/* Убедимся, что основной контент отображается поверх канваса */
+.app-container {
+  position: relative;
+  z-index: 1;
 }
