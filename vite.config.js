@@ -1,32 +1,23 @@
+// vite.config.js (минималистичный)
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    visualizer({
-      filename: "dist/stats.html", // Output file
-      open: true, // Automatically open the report in your browser
-      gzipSize: true, // Show gzipped sizes
-    }),
-  ],
+  plugins: [react()],
+  
+  // Эта настройка обязательна для вашего проекта, если он лежит в поддиректории.
+  base: '/cossacks-replay-parser/',
+
+  // Vite по умолчанию уже делает много чего:
+  // - Для продакшена использует Terser с хорошими настройками.
+  // - Цель сборки (target) по умолчанию - 'modules' (поддержка нативных ES-модулей).
+  // - Минификация включена.
+  // Мы лишь добавляем удаление console.log для продакшена.
   build: {
-    target: "es2019",
-    minify: "terser",
     terserOptions: {
       compress: {
-        // Remove console.log, console.info, etc.
-        drop_console: true,
-        // Remove debugger statements
-        drop_debugger: true,
-        // Remove specific function calls (more granular than drop_console)
-        // pure_funcs: ['console.log', 'console.info'],
-      },
-      format: {
-        comments: false, // Remove all comments
+        drop_console: true, // Удаляем консоль в продакшене
       },
     },
   },
-  base: '/cossacks-replay-parser/',
 });
