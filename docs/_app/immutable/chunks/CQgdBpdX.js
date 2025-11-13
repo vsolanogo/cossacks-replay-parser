@@ -1,0 +1,1 @@
+import{g as n,t as a}from"./BIaCYsb4.js";function f(e,o,l){var t=n(e,o);t&&t.set&&(e[o]=l,a(()=>{e[o]=null}))}var i=typeof globalThis<"u"?globalThis:typeof window<"u"?window:typeof global<"u"?global:typeof self<"u"?self:{};function s(e){return e&&e.__esModule&&Object.prototype.hasOwnProperty.call(e,"default")?e.default:e}export{f as b,i as c,s as g};

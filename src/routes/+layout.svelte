@@ -2,6 +2,7 @@
   import '../app.css';
   import CanvasContainer from '$lib/components/CanvasContainer.svelte';
   import FPSCounter from '$lib/components/FPSCounter.svelte';
+  export const prerender = true;
 </script>
 
 <svelte:head>
@@ -10,7 +11,7 @@
   <meta name="description" content="Parse and analyze Cossacks 3 replay files directly in your browser. Upload .rep replays to inspect players, resources, and match statistics." />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://vsolanogo.github.io/cossacks-replay-parser/" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+  <link rel="icon" type="image/svg+xml" href="/cossacks-replay-parser/favicon.png" />
 
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://vsolanogo.github.io/cossacks-replay-parser/" />

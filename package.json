@@ -30,5 +30,8 @@
 		"prettier-plugin-svelte": "^3.4.0",
 		"rollup-plugin-visualizer": "^6.0.5",
 		"stats.js": "^0.17.0"
-	}
+	},
+	  "svelteKit": {
+    "adapter": "static"
+  }
 }
