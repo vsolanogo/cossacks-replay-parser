@@ -1,37 +1,51 @@
 {
-	"name": "svelte2",
-	"private": true,
-	"version": "0.0.1",
-	"type": "module",
-	"scripts": {
-		"dev": "vite dev",
-		"build": "vite build",
-		"preview": "vite preview",
-		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
-	},
-	"devDependencies": {
-		"@sveltejs/adapter-auto": "^7.0.0",
-		"@sveltejs/kit": "^2.48.4",
-		"@sveltejs/vite-plugin-svelte": "^6.2.1",
-		"@types/howler": "^2.2.12",
-		"@types/stats.js": "^0.17.4",
-		"svelte": "^5.43.6",
-		"svelte-check": "^4.3.4",
-		"typescript": "^5.9.3",
-		"vite": "^7.2.2"
-	},
-	"dependencies": {
-		"@sveltejs/adapter-static": "^3.0.10",
-		"howler": "^2.2.4",
-		"pixi.js": "^8.14.1",
-		"prettier": "^3.6.2",
-		"prettier-plugin-svelte": "^3.4.0",
-		"rollup-plugin-visualizer": "^6.0.5",
-		"stats.js": "^0.17.0"
-	},
-	  "svelteKit": {
-    "adapter": "static"
+  "name": "text-file-parser",
+  "private": true,
+  "version": "0.0.0",
+  "author": "vsolanogo",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "pixi.js": "^8.14.0",
+    "prettier": "^3.6.2",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "rollup-plugin-visualizer": "^6.0.5",
+    "stats.js": "^0.17.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/howler": "^2.2.12",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@types/stats.js": "^0.17.4",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "@vitejs/plugin-react": "^5.1.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "terser": "^5.44.1",
+    "vite": "^7.2.2"
+  },
+  "browserslist": {
+    "production": [
+      "last 2 Chrome versions",
+      "last 2 Edge versions",
+      "last 2 Firefox versions",
+      "last 2 Safari versions"
+    ],
+    "development": [
+      "last 1 Chrome version",
+      "last 1 Firefox version",
+      "last 1 Safari version"
+    ]
   }
 }
