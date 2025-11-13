@@ -1,21 +1,20 @@
-// import adapter from '@sveltejs/adapter-auto';
-import adapter from '@sveltejs/adapter-static'; 
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import adapter from "@sveltejs/adapter-static";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-  preprocess: vitePreprocess(),
   kit: {
-		adapter: adapter({
-			fallback: 'index.html'
-		}),
-		paths: {
-			base: '/cossacks-replay-parser'
-		}
-  },
-      prerender: {
-      default: true
-    }
+    adapter: adapter({
+      pages: 'build',
+      assets: 'build',
+      fallback: 'index.html',
+      trailingSlash: 'always',
+      precompress: true,
+    }),
+    paths: {
+      base: '/cossacks-replay-parser',
+    },
+  }
 };
 
 export default config;
