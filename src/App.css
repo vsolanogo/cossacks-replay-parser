@@ -56,7 +56,10 @@
   padding: 0.5rem 1rem;
   font-size: 14px;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
 }
 
 /* Danger button (replaces inline red overrides) */
@@ -81,18 +84,42 @@
   vertical-align: middle;
 }
 
-.color-0 { background-color: rgb(252, 3, 3); }
-.color-1 { background-color: rgb(11, 3, 252); }
-.color-2 { background-color: rgb(3, 244, 252); }
-.color-3 { background-color: rgb(175, 0, 250); }
-.color-4 { background-color: rgb(245, 113, 12); }
-.color-5 { background-color: rgb(47, 217, 4); }
-.color-6 { background-color: rgb(252, 250, 250); }
-.color-7 { background-color: rgb(247, 65, 250); }
-.color-8 { background-color: rgb(238, 255, 0); }
-.color-9 { background-color: rgb(56, 35, 176); }
-.color-10 { background-color: rgb(145, 255, 149); }
-.color-11 { background-color: rgb(99, 53, 7); }
+.color-0 {
+  background-color: rgb(252, 3, 3);
+}
+.color-1 {
+  background-color: rgb(11, 3, 252);
+}
+.color-2 {
+  background-color: rgb(3, 244, 252);
+}
+.color-3 {
+  background-color: rgb(175, 0, 250);
+}
+.color-4 {
+  background-color: rgb(245, 113, 12);
+}
+.color-5 {
+  background-color: rgb(47, 217, 4);
+}
+.color-6 {
+  background-color: rgb(252, 250, 250);
+}
+.color-7 {
+  background-color: rgb(247, 65, 250);
+}
+.color-8 {
+  background-color: rgb(238, 255, 0);
+}
+.color-9 {
+  background-color: rgb(56, 35, 176);
+}
+.color-10 {
+  background-color: rgb(145, 255, 149);
+}
+.color-11 {
+  background-color: rgb(99, 53, 7);
+}
 
 .btn:not(:disabled):hover {
   transform: translateY(-1px);
@@ -138,7 +165,11 @@
 }
 
 .results-table th {
-  background: linear-gradient(180deg, rgba(123, 92, 255, 0.25), rgba(34, 211, 238, 0.15));
+  background: linear-gradient(
+    180deg,
+    rgba(123, 92, 255, 0.25),
+    rgba(34, 211, 238, 0.15)
+  );
   font-weight: 700;
 }
 
@@ -175,16 +206,18 @@
 }
 
 @keyframes spin {
-  to { transform: translateY(-50%) rotate(360deg); }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
 }
 
 #canvas-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
 }
 
 /* Badge style for LAN ID */
@@ -193,10 +226,12 @@
   padding: 0.1rem 0.4rem;
   margin: 0 0.25rem;
   border-radius: 6px;
-  background: linear-gradient(135deg, #ff4d4f, #ff7a7a);
+  background: #ff4d4f;
   color: #fff;
   font-weight: 700;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   /* box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.35) inset, 0 6px 14px rgba(255, 77, 79, 0.35); */
   letter-spacing: 0.02em;
 }
@@ -239,7 +274,9 @@
   pointer-events: none;
   transform: translateY(-4px) scale(0.98);
   transform-origin: top left;
-  transition: opacity 0.18s ease, transform 0.18s ease;
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease;
   z-index: 20;
 }
 
@@ -263,8 +300,12 @@
 }
 
 @keyframes lanid-scan {
-  0% { background-position: 0% 0; }
-  100% { background-position: 100% 0; }
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
 }
 
 /* Cheater badge with animated wavy background */
@@ -284,9 +325,15 @@
   gap: 6px;
   /* box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25), 0 0 0 1px rgba(244, 67, 54, 0.25) inset; */
   background:
-    radial-gradient(120% 60% at 0% 0%, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0) 60%),
+    radial-gradient(
+      120% 60% at 0% 0%,
+      rgba(255, 255, 255, 0.22),
+      rgba(255, 255, 255, 0) 60%
+    ),
     linear-gradient(120deg, #ffd9d9 0%, #ffb3b3 50%, #ffd9d9 100%);
-  background-size: 200% 200%, 200% 200%;
+  background-size:
+    200% 200%,
+    200% 200%;
   animation: cheater-wave 2.2s ease-in-out infinite;
 }
 
@@ -295,33 +342,42 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(255, 255, 255, 0.18) 0px,
-      rgba(255, 255, 255, 0.18) 6px,
-      rgba(255, 255, 255, 0.0) 6px,
-      rgba(255, 255, 255, 0.0) 14px
-    );
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.18) 0px,
+    rgba(255, 255, 255, 0.18) 6px,
+    rgba(255, 255, 255, 0) 6px,
+    rgba(255, 255, 255, 0) 14px
+  );
   pointer-events: none;
   animation: cheater-stripes 3.6s linear infinite;
 }
 
 @keyframes cheater-wave {
   0% {
-    background-position: 0% 50%, 0% 50%;
+    background-position:
+      0% 50%,
+      0% 50%;
   }
   50% {
-    background-position: 100% 50%, 100% 50%;
+    background-position:
+      100% 50%,
+      100% 50%;
   }
   100% {
-    background-position: 0% 50%, 0% 50%;
+    background-position:
+      0% 50%,
+      0% 50%;
   }
 }
 
 @keyframes cheater-stripes {
-  0% { background-position: 0 0; }
-  100% { background-position: 200px 0; }
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200px 0;
+  }
 }
 
 /* Extra Steam links highlight (replaces inline styles) */

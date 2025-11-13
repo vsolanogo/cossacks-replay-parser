@@ -85,22 +85,16 @@ const useFilteredPlayers = (data?: GameInfo | null) => {
 
 // Small components
 const ColorChip: React.FC<{ color: number }> = ({ color }) => {
-  return (
-    <span
-      aria-label="color"
-      title={`rgb(${COLORS_RGB[color] ?? ""})`}
-      className={`color-chip color-${color}`}
-    />
-  );
+  return <span className={`color-chip color-${color}`} />;
 };
 
-const SteamProfileLink: React.FC<{ 
-  steamId?: number | string, 
-  name?: string, 
-  className?: string 
+const SteamProfileLink: React.FC<{
+  steamId?: number | string;
+  name?: string;
+  className?: string;
 }> = ({ steamId, name, className = "" }) => {
   if (!steamId || String(steamId) === "0") return null;
-  
+
   try {
     const url = createSteamUrl(steamId);
     return (
@@ -120,20 +114,26 @@ const SteamProfileLink: React.FC<{
   }
 };
 
-const LanidBadge: React.FC<{ 
-  lanid: number, 
-  playerName: string, 
-  lanidNames: Record<string | number, string[]> 
+const LanidBadge: React.FC<{
+  lanid: number;
+  playerName: string;
+  lanidNames: Record<string | number, string[]>;
 }> = ({ lanid, playerName, lanidNames }) => {
   const namesArr = lanidNames[lanid] ?? [];
   const hasMultiple = namesArr.length > 1;
   const otherNames = namesArr.filter((n) => n !== playerName);
-  
+
   return (
     <span className="lanid-badge-wrapper">
-      <span className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}>{lanid}</span>
+      <span
+        className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}
+      >
+        {lanid}
+      </span>
       {CHEATERS_LANID.includes(lanid) && (
-        <span className="cheater-badge" title="Reported cheater">🚨 cheater</span>
+        <span className="cheater-badge" title="Reported cheater">
+          🚨 cheater
+        </span>
       )}
       {hasMultiple && (
         <span className="lanid-tooltip" role="tooltip">
@@ -155,12 +155,14 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
     { id: (player as any)?.si2, name: (player as any)?.sn2 },
     { id: (player as any)?.si3, name: (player as any)?.sn3 },
   ];
-  
+
   const primary = (player as any)?.sic as number | string | undefined;
   const primaryStr = primary != null ? String(primary) : "0";
-  
+
   const links = extras
-    .filter((e) => e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr)
+    .filter(
+      (e) => e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr
+    )
     .map((e, idx) => (
       <SteamProfileLink
         key={`ex-${idx}`}
@@ -170,7 +172,7 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
       />
     ))
     .filter(Boolean);
-    
+
   return links.length ? (
     <span className="steam-extras" title="Extra Steam links">
       <span className="steam-extras__pill">extra</span>
@@ -179,25 +181,25 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
   ) : null;
 };
 
-const PlayerItem: React.FC<{ 
-  player: any, 
-  lanidNames: Record<string | number, string[]> 
+const PlayerItem: React.FC<{
+  player: any;
+  lanidNames: Record<string | number, string[]>;
 }> = ({ player, lanidNames }) => {
   return (
     <li key={`${player.id}-${player.lanid}-${player.color}`}>
       {player.name} (id: {player.id})
-      <SteamProfileLink 
-        steamId={(player as any)?.sic} 
-        name={(player as any)?.snc} 
+      <SteamProfileLink
+        steamId={(player as any)?.sic}
+        name={(player as any)?.snc}
+      />{" "}
+      lanid{" "}
+      <LanidBadge
+        lanid={player.lanid}
+        playerName={player.name}
+        lanidNames={lanidNames}
       />
-      {" "}lanid {" "}
-      <LanidBadge 
-        lanid={player.lanid} 
-        playerName={player.name} 
-        lanidNames={lanidNames} 
-      />
-      <ExtraSteamLinks player={player} />
-      {" "}team {player.team} color {player.color}
+      <ExtraSteamLinks player={player} /> team {player.team} color{" "}
+      {player.color}
       <ColorChip color={player.color} />
     </li>
   );
@@ -209,18 +211,21 @@ export type PlayersListProps = {
   lanidNames: Record<string | number, string[]>;
 };
 
-export const PlayersList: React.FC<PlayersListProps> = ({ data, lanidNames }) => {
+export const PlayersList: React.FC<PlayersListProps> = ({
+  data,
+  lanidNames,
+}) => {
   const players = useFilteredPlayers(data);
-  
+
   if (!players.length) return <>—</>;
 
   return (
     <ul className="players-list">
       {players.map((player) => (
-        <PlayerItem 
-          key={`${player.id}-${player.lanid}-${player.color}`} 
-          player={player} 
-          lanidNames={lanidNames} 
+        <PlayerItem
+          key={`${player.id}-${player.lanid}-${player.color}`}
+          player={player}
+          lanidNames={lanidNames}
         />
       ))}
     </ul>
