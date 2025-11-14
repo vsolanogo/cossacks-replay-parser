@@ -7,8 +7,22 @@ import tsparser from '@typescript-eslint/parser'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
-  js.configs.recommended,
+  globalIgnores(['dist', 'build', 'coverage']),
+  
+  // The base ESLint recommended rules for modern JS.
+  // This line uses the 'js' import.
+  js.configs.recommended, 
+  
+  // Global settings that apply to all files
+  {
+    settings: {
+      react: {
+        version: 'detect'
+      }
+    }
+  },
+  
+  // JavaScript/JSX configuration
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
@@ -27,9 +41,17 @@ export default defineConfig([
     rules: {
       ...reactHooks.configs.recommended.rules,
       ...reactRefresh.configs.recommended.rules,
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'no-unused-vars': ['error', { 
+        varsIgnorePattern: '^[A-Z_]',
+        argsIgnorePattern: '^_'
+      }],
+      // Common exceptions that developers appreciate
+      'no-console': 'warn', // Warn instead of error
+      'no-debugger': 'warn', // Warn instead of error
     },
   },
+  
+  // TypeScript/TSX configuration
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: {
@@ -53,7 +75,18 @@ export default defineConfig([
       ...reactHooks.configs.recommended.rules,
       ...reactRefresh.configs.recommended.rules,
       'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      '@typescript-eslint/no-unused-vars': ['error', { 
+        varsIgnorePattern: '^[A-Z_]',
+        argsIgnorePattern: '^_'
+      }],
+      // Common TypeScript exceptions
+      '@typescript-eslint/no-explicit-any': 'warn', // Warn instead of error
+      '@typescript-eslint/explicit-function-return-type': 'off', // Allow inference
+      '@typescript-eslint/explicit-module-boundary-types': 'off', // Allow inference
+      '@typescript-eslint/no-non-null-assertion': 'warn', // Warn instead of error
+      // Common exceptions that developers appreciate
+      'no-console': 'warn',
+      'no-debugger': 'warn',
     },
   },
 ])

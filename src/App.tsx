@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import React from "react";
 import { WorkerPool, type ParseResultStatus } from "./workerPool";
 import { ParseResult, type GameInfo } from "./fileParser.worker";
 import "./App.css";

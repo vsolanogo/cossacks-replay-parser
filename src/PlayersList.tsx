@@ -77,10 +77,8 @@ const filterValidPlayers = (players: any[]): any[] => {
 
 // Custom hook
 const useFilteredPlayers = (data?: GameInfo | null) => {
-  return React.useMemo(() => {
-    if (!data?.players) return [];
-    return filterValidPlayers(data.players);
-  }, [data?.players]);
+  if (!data?.players) return [];
+  return filterValidPlayers(data.players);
 };
 
 // Small components
@@ -94,9 +92,9 @@ const SteamProfileLink: React.FC<{
   className?: string;
 }> = ({ steamId, name, className = "" }) => {
   if (!steamId || String(steamId) === "0") return null;
+  const url = createSteamUrl(steamId);
 
-  try {
-    const url = createSteamUrl(steamId);
+  if (url.length > 0)
     return (
       <a
         href={url}
@@ -109,9 +107,8 @@ const SteamProfileLink: React.FC<{
         {name ? <span>{name}</span> : null}
       </a>
     );
-  } catch {
-    return null;
-  }
+
+  return null;
 };
 
 const LanidBadge: React.FC<{
