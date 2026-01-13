@@ -4,4 +4,5 @@ export const CHEATERS_LANID = [
     364459, /*KOPCAP*/
     351554, /*Left*/
     318040, /*Luc1k*/
+    336746, /*Titus*/
 ];
