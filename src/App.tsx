@@ -14,8 +14,10 @@ const useWorkerPool = () => {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
 
   useEffect(() => {
+    console.time("worker-pool-init");
     const pool = new WorkerPool();
     setWorkerPool(pool);
+    console.timeEnd("worker-pool-init");
     return () => {
       pool.terminate();
     };
@@ -26,8 +28,9 @@ const useWorkerPool = () => {
 
 const buildLanidNamesFromResults = (
   results: ResultRow[],
-): Record<string, string[]> =>
-  results
+): Record<string, string[]> => {
+  console.time("build-lanid-names");
+  const result = results
     .flatMap((r) => r.data?.players ?? [])
     .reduce(
       (acc, { lanid, name }) => {
@@ -38,12 +41,16 @@ const buildLanidNamesFromResults = (
       },
       {} as Record<string, string[]>,
     );
+  console.timeEnd("build-lanid-names");
+  return result;
+};
 
 const useFileResults = () => {
   const [fileResults, setFileResults] = useState<ResultRow[]>([]);
   const [lanidNames, setLanidNames] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
+    console.time("load-results");
     loadResults()
       .then((results) => {
         const valid = Array.isArray(results) ? (results as ResultRow[]) : [];
@@ -51,21 +58,30 @@ const useFileResults = () => {
           valid.sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)),
         );
         setLanidNames(buildLanidNamesFromResults(valid));
+        console.timeEnd("load-results");
       })
-      .catch((e) => console.error("Failed to load results", e));
+      .catch((e) => {
+        console.error("Failed to load results", e);
+        console.timeEnd("load-results");
+      });
   }, []);
 
   useEffect(() => {
     const handle = setTimeout(() => {
-      saveResults(fileResults).catch((e) =>
-        console.error("Failed to save results", e),
-      );
+      console.time("save-results");
+      saveResults(fileResults)
+        .then(() => console.timeEnd("save-results"))
+        .catch((e) => {
+          console.error("Failed to save results", e);
+          console.timeEnd("save-results");
+        });
     }, 2000);
     return () => clearTimeout(handle);
   }, [fileResults]);
 
   const addResult = useCallback(
     (result: ParseResult, fileName: string, batchTime: number) => {
+      console.time(`add-result-${fileName}`);
       const players = result.data?.players;
       if (players?.length) {
         setLanidNames((prev) => {
@@ -99,11 +115,13 @@ const useFileResults = () => {
           (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
         );
       });
+      console.timeEnd(`add-result-${fileName}`);
     },
     [],
   );
 
   const addErrorResult = useCallback((fileName: string, batchTime: number) => {
+    console.time(`add-error-result-${fileName}`);
     setFileResults((prev) =>
       [
         {
@@ -116,14 +134,17 @@ const useFileResults = () => {
         ...prev,
       ].sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)),
     );
+    console.timeEnd(`add-error-result-${fileName}`);
   }, []);
 
   const clearAllResults = useCallback(async () => {
+    console.time("clear-all-results");
     await clearResults().catch((e) =>
       console.error("Failed to clear results", e),
     );
     setFileResults([]);
     setLanidNames({});
+    console.timeEnd("clear-all-results");
   }, []);
 
   return {
@@ -143,7 +164,11 @@ const processFilesBatch = async (
   addErrorResult: (n: string, t: number) => void,
   parallel: boolean,
 ): Promise<void> => {
+  const batchType = parallel ? "parallel" : "sequential";
+  console.time(`process-batch-${batchType}-${files.length}-files`);
+
   const processOne = async (file: File) => {
+    console.time(`process-file-${file.name}`);
     try {
       const result = await workerPool.processFile(file);
       addResult(result, result.fileName, batchTime);
@@ -151,6 +176,8 @@ const processFilesBatch = async (
     } catch (error) {
       console.error("Error processing file:", error);
       addErrorResult(file.name, batchTime);
+    } finally {
+      console.timeEnd(`process-file-${file.name}`);
     }
   };
 
@@ -159,6 +186,8 @@ const processFilesBatch = async (
   } else {
     for (const file of files) await processOne(file);
   }
+
+  console.timeEnd(`process-batch-${batchType}-${files.length}-files`);
 };
 
 const FileInput = ({
@@ -220,30 +249,35 @@ const ResultsTable = ({
 }: {
   fileResults: ResultRow[];
   lanidNames: Record<string, string[]>;
-}) => (
-  <table className="results-table">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>File Name</th>
-        <th>Players</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {fileResults.map((row, idx) => (
-        <tr key={row.key}>
-          <td>{idx + 1}</td>
-          <td>{row.fileName}</td>
-          <td>
-            <PlayersList data={row.data} lanidNames={lanidNames} />
-          </td>
-          <td>{row.status}</td>
+}) => {
+  console.time("render-results-table");
+  const table = (
+    <table className="results-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>File Name</th>
+          <th>Players</th>
+          <th>Status</th>
         </tr>
-      ))}
-    </tbody>
-  </table>
-);
+      </thead>
+      <tbody>
+        {fileResults.map((row, idx) => (
+          <tr key={row.key}>
+            <td>{idx + 1}</td>
+            <td>{row.fileName}</td>
+            <td>
+              <PlayersList data={row.data} lanidNames={lanidNames} />
+            </td>
+            <td>{row.status}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+  console.timeEnd("render-results-table");
+  return table;
+};
 
 function App() {
   const workerPool = useWorkerPool();
@@ -259,16 +293,19 @@ function App() {
 
   const processFiles = useCallback(
     async (files: FileList) => {
+      console.time("total-process-files");
       if (!workerPool) return console.error("Worker pool not initialized");
 
       setLoading(true);
       try {
+        console.time("file-sorting");
         const LIMIT = 30 * 1024 * 1024;
         const batchTime = Date.now();
         const [small, large] = Array.from(files).reduce<[File[], File[]]>(
           ([s, l], f) => (f.size <= LIMIT ? [[...s, f], l] : [s, [...l, f]]),
           [[], []],
         );
+        console.timeEnd("file-sorting");
 
         await Promise.all([
           processFilesBatch(
@@ -293,6 +330,7 @@ function App() {
       } finally {
         setLoading(false);
         if (fileInputRef.current) fileInputRef.current.value = "";
+        console.timeEnd("total-process-files");
       }
     },
     [workerPool, addResult, addErrorResult],

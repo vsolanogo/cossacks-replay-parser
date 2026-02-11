@@ -13,11 +13,11 @@ export default defineConfig({
   // - Цель сборки (target) по умолчанию - 'modules' (поддержка нативных ES-модулей).
   // - Минификация включена.
   // Мы лишь добавляем удаление console.log для продакшена.
-  build: {
-    terserOptions: {
-      compress: {
-        drop_console: true, // Удаляем консоль в продакшене
-      },
-    },
-  },
+  // build: {
+  //   terserOptions: {
+  //     compress: {
+  //       drop_console: true, // Удаляем консоль в продакшене
+  //     },
+  //   },
+  // },
 });
