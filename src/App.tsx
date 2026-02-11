@@ -49,6 +49,7 @@ const useFileResults = () => {
   const [fileResults, setFileResults] = useState<ResultRow[]>([]);
   const [lanidNames, setLanidNames] = useState<Record<string, string[]>>({});
 
+  // Load on mount only
   useEffect(() => {
     console.time("load-results");
     loadResults()
@@ -66,23 +67,22 @@ const useFileResults = () => {
       });
   }, []);
 
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      console.time("save-results");
-      saveResults(fileResults)
-        .then(() => console.timeEnd("save-results"))
-        .catch((e) => {
-          console.error("Failed to save results", e);
-          console.timeEnd("save-results");
-        });
-    }, 2000);
-    return () => clearTimeout(handle);
-  }, [fileResults]);
+  // Helper to save with error handling
+  const persistResults = useCallback((results: ResultRow[]) => {
+    console.time("save-results");
+    saveResults(results)
+      .then(() => console.timeEnd("save-results"))
+      .catch((e) => {
+        console.error("Failed to save results", e);
+        console.timeEnd("save-results");
+      });
+  }, []);
 
   const addResult = useCallback(
     (result: ParseResult, fileName: string, batchTime: number) => {
       console.time(`add-result-${fileName}`);
       const players = result.data?.players;
+
       if (players?.length) {
         setLanidNames((prev) => {
           const next = { ...prev };
@@ -100,6 +100,7 @@ const useFileResults = () => {
         const existingIndex = gameId
           ? prev.findIndex((r) => r.data?.gameId === gameId)
           : -1;
+
         const newRow: ResultRow = {
           key: gameId || `${fileName}-${Date.now()}-${Math.random()}`,
           uploadedAt: Date.now(),
@@ -107,35 +108,50 @@ const useFileResults = () => {
           data: result.data,
           status: result.status,
         };
+
         const updated =
           existingIndex !== -1
             ? prev.map((r, i) => (i === existingIndex ? newRow : r))
             : [newRow, ...prev];
-        return updated.sort(
+
+        const sorted = updated.sort(
           (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
         );
+
+        // IndexedDB is async, doesn't block React's state update
+        persistResults(sorted);
+
+        console.timeEnd(`add-result-${fileName}`);
+        return sorted;
       });
-      console.timeEnd(`add-result-${fileName}`);
     },
-    [],
+    [persistResults],
   );
 
-  const addErrorResult = useCallback((fileName: string, batchTime: number) => {
-    console.time(`add-error-result-${fileName}`);
-    setFileResults((prev) =>
-      [
-        {
-          key: `${fileName}-${Date.now()}-${Math.random()}`,
-          uploadedAt: batchTime,
-          fileName,
-          data: null,
-          status: "error" as ParseResultStatus,
-        },
-        ...prev,
-      ].sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)),
-    );
-    console.timeEnd(`add-error-result-${fileName}`);
-  }, []);
+  const addErrorResult = useCallback(
+    (fileName: string, batchTime: number) => {
+      console.time(`add-error-result-${fileName}`);
+
+      setFileResults((prev) => {
+        const updated = [
+          {
+            key: `${fileName}-${Date.now()}-${Math.random()}`,
+            uploadedAt: batchTime,
+            fileName,
+            data: null,
+            status: "error" as ParseResultStatus,
+          },
+          ...prev,
+        ].sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
+
+        persistResults(updated);
+
+        console.timeEnd(`add-error-result-${fileName}`);
+        return updated;
+      });
+    },
+    [persistResults],
+  );
 
   const clearAllResults = useCallback(async () => {
     console.time("clear-all-results");
