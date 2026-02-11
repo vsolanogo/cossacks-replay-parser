@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "howler": "^2.2.4",
-    "pixi.js": "^8.14.0",
-    "prettier": "^3.6.2",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "pixi.js": "^8.16.0",
+    "prettier": "^3.8.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "rollup-plugin-visualizer": "^6.0.5",
     "stats.js": "^0.17.0"
   },
@@ -27,13 +27,13 @@
     "@types/stats.js": "^0.17.4",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
-    "@vitejs/plugin-react": "^5.1.0",
+    "@vitejs/plugin-react": "^5.1.4",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "terser": "^5.44.1",
-    "vite": "^7.2.2"
+    "globals": "^17.3.0",
+    "terser": "^5.46.0",
+    "vite": "^7.3.1"
   },
   "browserslist": {
     "production": [
