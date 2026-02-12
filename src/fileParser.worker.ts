@@ -29,14 +29,14 @@ export interface Player {
   bloaded: boolean;
   bleave: boolean;
   // New fields for additional player info
-  sic?: number;
-  si1?: number;
-  si2?: number;
-  si3?: number;
-  snc?: string;
-  sn1?: string;
-  sn2?: string;
-  sn3?: string;
+  sic?: number | undefined;
+  si1?: number | undefined;
+  si2?: number | undefined;
+  si3?: number | undefined;
+  snc?: string | undefined;
+  sn1?: string | undefined;
+  sn2?: string | undefined;
+  sn3?: string | undefined;
 }
 
 export interface GameInfo {
@@ -69,24 +69,24 @@ self.onmessage = (e: MessageEvent<File>) => {
       }
 
       const gameInfo: GameInfo = {
-        gameId: gameMatch[1],
-        gMapName: gameMatch[2],
-        mapSize: parseInt(gameMatch[3], 10),
-        terrainType: parseInt(gameMatch[4], 10),
-        reliefType: parseInt(gameMatch[5], 10),
+        gameId: gameMatch[1] ?? "",
+        gMapName: gameMatch[2] ?? "",
+        mapSize: parseInt(gameMatch[3] ?? "0", 10),
+        terrainType: parseInt(gameMatch[4] ?? "0", 10),
+        reliefType: parseInt(gameMatch[5] ?? "0", 10),
         players: []
       };
 
       // --- 1) Sequential parsing of players section, as in C++ ---
       const playersSectionM = text.match(/\bplayers\b([\s\S]*?)(?=\bplayersinfo\b|\bPatternList\b|\bF\b|$)/);
-      let src = playersSectionM ? playersSectionM[1] : text;
+      let src = playersSectionM?.[1] ?? text;
 
       const readNext = (source: string, re: RegExp): { value: string; rest: string } => {
         const rx = new RegExp(re.source, re.flags.includes("g") ? re.flags : re.flags + "g");
         const m = rx.exec(source);
         if (!m) return { value: "", rest: source };
         const end = m.index + m[0].length;
-        return { value: m[1], rest: source.slice(end) };
+        return { value: m[1] ?? "", rest: source.slice(end) };
       };
 
       const seqPlayers: Player[] = [];
@@ -103,7 +103,7 @@ self.onmessage = (e: MessageEvent<File>) => {
         const nameM = nameSearch.exec(src);
         let nameVal = "";
         if (nameM) {
-          nameVal = nameM[1].trim();
+          nameVal = nameM[1]?.trim() ?? "";
           // do NOT advance past 'team' keyword; cut source only up to the start of 'team'
           const cutPos = nameM.index + nameM[0].length - 4; // length of 'team'
           src = src.slice(cutPos);
@@ -164,12 +164,14 @@ self.onmessage = (e: MessageEvent<File>) => {
       }
 
       // --- 1b) Alternative parsing by * id blocks ... (fallback) ---
-      const playersSection = playersSectionM ? playersSectionM[1] : text;
+      const playersSection = playersSectionM?.[1] ?? text;
       const playerBlockRegex = /(\* id \d+[\s\S]*?)(?=\* id |\bplayersinfo\b|$)/g;
       let blockMatch: RegExpExecArray | null;
       const playerBlocks: string[] = [];
       while ((blockMatch = playerBlockRegex.exec(playersSection)) !== null) {
-        playerBlocks.push(blockMatch[1]);
+        if (blockMatch[1]) {
+          playerBlocks.push(blockMatch[1]);
+        }
       }
 
       const lastGroup = (s: string, re: RegExp): string | undefined => {
@@ -183,6 +185,7 @@ self.onmessage = (e: MessageEvent<File>) => {
       const blkPlayers: Player[] = [];
       for (let idx = 0; idx < playerBlocks.length; idx++) {
         const block = playerBlocks[idx];
+        if (!block) continue;
         const idM = block.match(/\* id (\-?\d+)/);
         const cidStr = lastGroup(block, /cid\s+(-?\d+)/g);
         const csidM = block.match(/csid\s+([^\s]+)/);
@@ -202,10 +205,10 @@ self.onmessage = (e: MessageEvent<File>) => {
         const bleaveM = block.match(/bleave\s+(true|false)/);
 
         const p: Player = {
-          id: idM ? parseInt(idM[1], 10) : idx,
+          id: idM ? parseInt(idM[1] ?? "0", 10) : idx,
           cid: cidStr != null ? parseInt(cidStr, 10) : NaN,
-          csid: csidM ? csidM[1] : "",
-          name: nameM ? nameM[1].trim() : (csidM ? csidM[1] : ""),
+          csid: csidM ? csidM[1] ?? "" : "",
+          name: nameM ? nameM[1]?.trim() ?? "" : (csidM ? csidM[1] ?? "" : ""),
           team: teamStr != null ? parseInt(teamStr, 10) : 0,
           color: colorStr != null ? parseInt(colorStr, 10) : 0,
           lanid: lanidStr != null ? parseInt(lanidStr, 10) : 0,
@@ -235,19 +238,21 @@ self.onmessage = (e: MessageEvent<File>) => {
         si1: number;
         si2: number;
         si3: number;
-        snc: string;
-        sn1: string;
-        sn2: string;
-        sn3: string;
+        snc?: string | undefined;
+        sn1?: string | undefined;
+        sn2?: string | undefined;
+        sn3?: string | undefined;
       }> = [];
 
       if (playersInfoSectionM) {
-        const infoText = playersInfoSectionM[1];
+        const infoText = playersInfoSectionM[1] ?? "";
         // Extract each entry starting with "* sic"
         const infoEntryRegex = /(\* sic [\s\S]*?)(?=\* sic |\n\*|$)/g;
         let infoMatch: RegExpExecArray | null;
         while ((infoMatch = infoEntryRegex.exec(infoText)) !== null) {
           const entry = infoMatch[1];
+          if (!entry) continue;
+
           const sicM = entry.match(/sic\s+(\d+)/);
           const si1M = entry.match(/si1\s+(\d+)/);
           const si2M = entry.match(/si2\s+(\d+)/);
@@ -259,14 +264,14 @@ self.onmessage = (e: MessageEvent<File>) => {
           const sn3M = entry.match(/sn3\s+([^\s]+)/);
 
           playersInfoEntries.push({
-            sic: sicM ? parseInt(sicM[1], 10) : 0,
-            si1: si1M ? parseInt(si1M[1], 10) : 0,
-            si2: si2M ? parseInt(si2M[1], 10) : 0,
-            si3: si3M ? parseInt(si3M[1], 10) : 0,
-            snc: sncM ? sncM[1] : "",
-            sn1: sn1M ? sn1M[1] : "",
-            sn2: sn2M ? sn2M[1] : "",
-            sn3: sn3M ? sn3M[1] : "",
+            sic: sicM ? parseInt(sicM[1] || "0", 10) : 0,
+            si1: si1M ? parseInt(si1M[1] || "0", 10) : 0,
+            si2: si2M ? parseInt(si2M[1] || "0", 10) : 0,
+            si3: si3M ? parseInt(si3M[1] || "0", 10) : 0,
+            snc: sncM ? sncM[1] : undefined,
+            sn1: sn1M ? sn1M[1] : undefined,
+            sn2: sn2M ? sn2M[1] : undefined,
+            sn3: sn3M ? sn3M[1] : undefined,
           });
         }
       }
@@ -285,12 +290,14 @@ self.onmessage = (e: MessageEvent<File>) => {
       gameInfo.players.forEach((p, idx) => {
         const n = normalizeName(p.name);
         if (!nameToPlayerIndex.has(n)) nameToPlayerIndex.set(n, []);
-        nameToPlayerIndex.get(n)!.push(idx);
+        const list = nameToPlayerIndex.get(n);
+        if (list) list.push(idx);
       });
 
       let fallbackIndex = 0;
       for (let i = 0; i < playersInfoEntries.length; i++) {
         const info = playersInfoEntries[i];
+        if (!info) continue;
         let matchedIdx: number | null = null;
 
         const normSnc = normalizeName(info.snc);
@@ -328,14 +335,16 @@ self.onmessage = (e: MessageEvent<File>) => {
 
         if (matchedIdx !== null && matchedIdx >= 0 && matchedIdx < gameInfo.players.length) {
           const p = gameInfo.players[matchedIdx];
-          p.sic = info.sic;
-          p.si1 = info.si1;
-          p.si2 = info.si2;
-          p.si3 = info.si3;
-          p.snc = info.snc || undefined;
-          p.sn1 = info.sn1 || undefined;
-          p.sn2 = info.sn2 || undefined;
-          p.sn3 = info.sn3 || undefined;
+          if (p) {
+            p.sic = info.sic;
+            p.si1 = info.si1;
+            p.si2 = info.si2;
+            p.si3 = info.si3;
+            p.snc = info.snc;
+            p.sn1 = info.sn1;
+            p.sn2 = info.sn2;
+            p.sn3 = info.sn3;
+          }
           usedPlayerIdx.add(matchedIdx);
         } else {
           // no player to attach to; ignore or log (we choose ignore)

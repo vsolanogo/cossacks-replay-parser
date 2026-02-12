@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import React from "react";
 import { WorkerPool, type ParseResultStatus } from "./workerPool";
-import { ParseResult, type GameInfo } from "./fileParser.worker";
+import { ParseResult } from "./fileParser.worker";
 import "./App.css";
 import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
@@ -79,7 +79,7 @@ const useFileResults = () => {
   }, []);
 
   const addResult = useCallback(
-    (result: ParseResult, fileName: string, batchTime: number) => {
+    (result: ParseResult, fileName: string) => {
       console.time(`add-result-${fileName}`);
       const players = result.data?.players;
 
@@ -105,7 +105,7 @@ const useFileResults = () => {
           key: gameId || `${fileName}-${Date.now()}-${Math.random()}`,
           uploadedAt: Date.now(),
           fileName,
-          data: result.data,
+          data: result.data ?? null,
           status: result.status,
         };
 
@@ -176,7 +176,7 @@ const processFilesBatch = async (
   workerPool: WorkerPool,
   files: File[],
   batchTime: number,
-  addResult: (r: ParseResult, n: string, t: number) => void,
+  addResult: (r: ParseResult, n: string) => void,
   addErrorResult: (n: string, t: number) => void,
   parallel: boolean,
 ): Promise<void> => {
@@ -187,7 +187,7 @@ const processFilesBatch = async (
     console.time(`process-file-${file.name}`);
     try {
       const result = await workerPool.processFile(file);
-      addResult(result, result.fileName, batchTime);
+      addResult(result, result.fileName);
       pop.play();
     } catch (error) {
       console.error("Error processing file:", error);

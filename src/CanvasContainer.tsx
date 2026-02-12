@@ -179,6 +179,7 @@ const CanvasContainerComponent = () => {
         const starSpeed = 0.5;
         for (let i = 0; i < starsContainer.children.length; i++) {
           const star = starsContainer.children[i];
+          if (!star) continue;
 
           // Twinkle effect
           star.alpha += (Math.random() - 0.5) * 0.05;
@@ -344,9 +345,15 @@ const createMouseDistortionTexture = (): HTMLCanvasElement => {
         const data = imageData.data;
 
         // Add noise to the pixel
-        data[0] = Math.min(255, Math.max(0, data[0] + noise));
-        data[1] = Math.min(255, Math.max(0, data[1] + noise));
-        data[2] = Math.min(255, Math.max(0, data[2] + noise));
+        const r = data[0];
+        const g = data[1];
+        const b = data[2];
+
+        if (r !== undefined && g !== undefined && b !== undefined) {
+          data[0] = Math.min(255, Math.max(0, r + noise));
+          data[1] = Math.min(255, Math.max(0, g + noise));
+          data[2] = Math.min(255, Math.max(0, b + noise));
+        }
 
         // Put the pixel back
         ctx.putImageData(imageData, x, y);

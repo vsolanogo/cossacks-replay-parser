@@ -54,6 +54,8 @@ export class WorkerPool {
     if (workerIndex === -1) return; // all busy, wait
 
     const worker = this.workers[workerIndex];
+    if (!worker) return;
+
     worker.busy = true;
     this.activeWorkers++;
 

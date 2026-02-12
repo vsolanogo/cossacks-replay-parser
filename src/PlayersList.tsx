@@ -4,55 +4,7 @@ import steamImg from "./images/cropped_steam_image.png";
 import { CHEATERS_LANID } from "./CHEATERS_LANID";
 
 // Constants
-const NATION_NAMES: string[] = [
-  "Random",
-  "Austria",
-  "France",
-  "England",
-  "Spain",
-  "Russia",
-  "Ukraine",
-  "Poland",
-  "Sweden",
-  "Prussia",
-  "Venice",
-  "Turkey",
-  "Algeria",
-  "Netherlands",
-  "Denmark",
-  "Portugal",
-  "Piedmont",
-  "Saxony",
-  "Bavaria",
-  "Hungary",
-  "Switzerland",
-  "Scotland",
-  "SPECTATOR",
-];
 
-const COLORS_RGB: string[] = [
-  "252, 3, 3",
-  "11, 3, 252",
-  "3, 244, 252",
-  "175, 0, 250",
-  "245, 113, 12",
-  "47, 217, 4",
-  "252, 250, 250",
-  "247, 65, 250",
-  "238, 255, 0",
-  "56, 35, 176",
-  "145, 255, 149",
-  "99, 53, 7",
-];
-
-// Helper functions
-const getNationName = (cid: number | undefined): string => {
-  if (cid === undefined || Number.isNaN(cid)) return "";
-  if (cid === -2) return "SPECTATOR";
-  if (cid === 24) return "Random";
-  if (cid >= 0 && cid < NATION_NAMES.length) return NATION_NAMES[cid];
-  return "";
-};
 
 const createSteamUrl = (steamId: number | string): string => {
   try {
@@ -87,8 +39,8 @@ const ColorChip: React.FC<{ color: number }> = ({ color }) => {
 };
 
 const SteamProfileLink: React.FC<{
-  steamId?: number | string;
-  name?: string;
+  steamId?: number | string | undefined;
+  name?: string | undefined;
   className?: string;
 }> = ({ steamId, name, className = "" }) => {
   if (!steamId || String(steamId) === "0") return null;
@@ -204,7 +156,7 @@ const PlayerItem: React.FC<{
 
 // Main component
 export type PlayersListProps = {
-  data?: GameInfo | null;
+  data?: GameInfo | null | undefined;
   lanidNames: Record<string | number, string[]>;
 };
 
