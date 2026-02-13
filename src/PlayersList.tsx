@@ -48,16 +48,22 @@ const SteamProfileLink: React.FC<{
 
   if (url.length > 0)
     return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        title={name ? `Open Steam profile: ${name}` : "Open Steam profile"}
-        className={`steam-link ${className}`}
-      >
-        <img src={steamImg} alt="Steam" className="steam-icon" />
-        {name ? <span>{name}</span> : null}
-      </a>
+      <span className="steam-link-wrapper">
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={name ? `Open Steam profile: ${name}` : "Open Steam profile"}
+          className={`steam-link ${className}`}
+        >
+          <img src={steamImg} alt="Steam" className="steam-icon" />
+          {name ? <span>{name}</span> : null}
+        </a>
+        <div className="steam-tooltip" role="tooltip">
+          <div className="steam-tooltip-arrow" />
+          <div className="steam-tooltip-content">{url}</div>
+        </div>
+      </span>
     );
 
   return null;
