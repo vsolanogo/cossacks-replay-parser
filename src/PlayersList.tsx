@@ -84,59 +84,42 @@ const LanidBadge: React.FC<{
   );
 };
 
-const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
-  const extras: Array<{ id?: number | string; name?: string }> = [
-    { id: (player as any)?.si1, name: (player as any)?.sn1 },
-    { id: (player as any)?.si2, name: (player as any)?.sn2 },
-    { id: (player as any)?.si3, name: (player as any)?.sn3 },
-  ];
+const ExtraSteamLinks: React.FC<{
+  links: Array<{ id: string | number; name?: string }>;
+}> = ({ links }) => {
+  const renderedLinks = links.map((e, idx) => (
+    <SteamProfileLink
+      key={`ex-${idx}`}
+      steamId={e.id}
+      name={e.name}
+      className="steam-link--extra"
+    />
+  ));
 
-  const primary = (player as any)?.sic as number | string | undefined;
-  const primaryStr = primary != null ? String(primary) : "0";
-
-  const links = extras
-    .filter(
-      (e) =>
-        e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr,
-    )
-    .map((e, idx) => (
-      <SteamProfileLink
-        key={`ex-${idx}`}
-        steamId={e.id}
-        name={e.name}
-        className="steam-link--extra"
-      />
-    ))
-    .filter(Boolean);
-  console.log("ExtraSteamLinks");
-
-  return links.length ? (
+  return renderedLinks.length ? (
     <span className="steam-extras" title="Extra Steam links">
       <span className="steam-extras__pill">extra</span>
-      {links}
+      {renderedLinks}
     </span>
   ) : null;
 };
 
 const PlayerItem: React.FC<{
-  player: any;
+  player: PlayersListProps["validPlayers"][0];
   lanidNames: Record<string | number, string[]>;
 }> = ({ player, lanidNames }) => {
   return (
     <li key={`${player.id}-${player.lanid}-${player.color}`}>
       {player.name} (id: {player.id})
-      <SteamProfileLink
-        steamId={(player as any)?.sic}
-        name={(player as any)?.snc}
-      />{" "}
+      <SteamProfileLink steamId={player.steamId} name={player.steamName} />{" "}
       lanid{" "}
       <LanidBadge
         lanid={player.lanid}
         playerName={player.name}
         lanidNames={lanidNames}
       />
-      <ExtraSteamLinks player={player} /> team {player.team} color{" "}
-      {player.color}
+      <ExtraSteamLinks links={player.extraSteamLinks} /> team {player.team}{" "}
+      color {player.color}
       <ColorChip color={player.color} />
     </li>
   );
@@ -144,7 +127,17 @@ const PlayerItem: React.FC<{
 
 // Main component
 export type PlayersListProps = {
-  validPlayers: any[];
+  validPlayers: {
+    original: any;
+    name: string;
+    id: number;
+    lanid: number;
+    color: number;
+    team: number;
+    steamId?: string | number | undefined;
+    steamName?: string;
+    extraSteamLinks: Array<{ id: string | number; name?: string }>;
+  }[];
   lanidNames: Record<string | number, string[]>;
 };
 

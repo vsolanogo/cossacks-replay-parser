@@ -11,7 +11,21 @@ import { PlayersList } from "./PlayersList";
 type ResultRow = ParseResult & {
   key: string;
   uploadedAt: number;
-  validPlayers: any[]; // Pre-filtered players
+  validPlayers: ProcessedPlayer[]; // Pre-filtered players
+};
+
+type ProcessedPlayer = {
+  // We can keep the raw player structure or pick what we need
+  // For now, let's keep it flexible but add our computed fields
+  original: any;
+  name: string;
+  id: number;
+  lanid: number;
+  color: number;
+  team: number;
+  steamId?: string | number | undefined;
+  steamName?: string;
+  extraSteamLinks: Array<{ id: string | number; name?: string }>;
 };
 
 type ProcessedData = {
@@ -56,15 +70,44 @@ const buildLanidNamesFromResults = (
 };
 
 // Moved from PlayersList to be used here
-const filterValidPlayers = (players: any[]): any[] => {
-  return players.filter((p) => {
-    const bexists = (p as any)?.bexists === true;
-    const lanidZero = p.lanid === 0;
-    const nameStr = (p as any)?.name ? String((p as any).name) : "";
-    const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
-    const isEmptySlot = lanidZero && isPlaceholderName;
-    return bexists && !isEmptySlot;
-  });
+// Moved from PlayersList to be used here
+const processPlayers = (players: any[]): ProcessedPlayer[] => {
+  return players
+    .filter((p) => {
+      const bexists = (p as any)?.bexists === true;
+      const lanidZero = p.lanid === 0;
+      const nameStr = (p as any)?.name ? String((p as any).name) : "";
+      const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
+      const isEmptySlot = lanidZero && isPlaceholderName;
+      return bexists && !isEmptySlot;
+    })
+    .map((p) => {
+      const primary = (p as any)?.sic as number | string | undefined;
+      const primaryStr = primary != null ? String(primary) : "0";
+
+      const extras = [
+        { id: (p as any)?.si1, name: (p as any)?.sn1 },
+        { id: (p as any)?.si2, name: (p as any)?.sn2 },
+        { id: (p as any)?.si3, name: (p as any)?.sn3 },
+      ]
+        .filter(
+          (e) =>
+            e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr,
+        )
+        .map((e) => ({ id: e.id, name: e.name }));
+
+      return {
+        original: p,
+        name: p.name,
+        id: p.id,
+        lanid: p.lanid,
+        color: p.color,
+        team: p.team,
+        steamId: primary,
+        steamName: (p as any)?.snc,
+        extraSteamLinks: extras,
+      };
+    });
 };
 
 const useFileResults = () => {
@@ -101,7 +144,7 @@ const useFileResults = () => {
         const prepared = valid.map((r) => ({
           ...r,
           validPlayers: r.data?.players
-            ? filterValidPlayers(r.data.players)
+            ? processPlayers(r.data.players)
             : [],
         }));
 
@@ -142,7 +185,7 @@ const useFileResults = () => {
           data: result.data ?? null,
           status: result.status,
           validPlayers: result.data?.players
-            ? filterValidPlayers(result.data.players)
+            ? processPlayers(result.data.players)
             : [],
         };
 
