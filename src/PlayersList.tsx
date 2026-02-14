@@ -5,7 +5,6 @@ import { CHEATERS_LANID } from "./CHEATERS_LANID";
 
 // Constants
 
-
 const createSteamUrl = (steamId: number | string): string => {
   try {
     const STEAM_ID_OFFSET = 76561197960265728n;
@@ -116,7 +115,8 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
 
   const links = extras
     .filter(
-      (e) => e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr
+      (e) =>
+        e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr,
     )
     .map((e, idx) => (
       <SteamProfileLink
@@ -127,6 +127,7 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
       />
     ))
     .filter(Boolean);
+  console.log("ExtraSteamLinks");
 
   return links.length ? (
     <span className="steam-extras" title="Extra Steam links">
