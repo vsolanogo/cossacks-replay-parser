@@ -128,66 +128,6 @@ const useFileResults = () => {
     [persistResults],
   );
 
-  const addResultsBatch = useCallback(
-    (results: { result: ParseResult; fileName: string }[]) => {
-      console.time(`add-results-batch-${results.length}`);
-
-      // Update Lanid Names once for the whole batch
-      const allPlayers = results.flatMap(r => r.result.data?.players ?? []);
-      if (allPlayers.length) {
-        setLanidNames((prev) => {
-          const next = { ...prev };
-          allPlayers.forEach(({ lanid, name }) => {
-            if (!name) return;
-            const key = String(lanid);
-            if (!next[key]?.includes(name)) (next[key] ??= []).push(name);
-          });
-          return next;
-        });
-      }
-
-      setFileResults((prev) => {
-        let updated = [...prev];
-        const newRows: ResultRow[] = [];
-
-        results.forEach(({ result, fileName }) => {
-          const gameId = result.data?.gameId;
-          const existingIndex = gameId
-            ? updated.findIndex((r) => r.data?.gameId === gameId)
-            : -1;
-
-          const newRow: ResultRow = {
-            key: gameId || `${fileName}-${Date.now()}-${Math.random()}`,
-            uploadedAt: Date.now(),
-            fileName,
-            data: result.data ?? null,
-            status: result.status,
-          };
-
-          if (existingIndex !== -1) {
-            updated[existingIndex] = newRow;
-          } else {
-            newRows.push(newRow);
-          }
-        });
-
-        // Prepend new rows
-        updated = [...newRows, ...updated];
-
-        const sorted = updated.sort(
-          (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
-        );
-
-        // IndexedDB is async, doesn't block React's state update
-        persistResults(sorted);
-
-        console.timeEnd(`add-results-batch-${results.length}`);
-        return sorted;
-      });
-    },
-    [persistResults],
-  );
-
   const addErrorResult = useCallback(
     (fileName: string, batchTime: number) => {
       console.time(`add-error-result-${fileName}`);
@@ -227,7 +167,6 @@ const useFileResults = () => {
     fileResults,
     lanidNames,
     addResult,
-    addResultsBatch,
     addErrorResult,
     clearAllResults,
   };
@@ -237,40 +176,19 @@ const processFilesBatch = async (
   workerPool: WorkerPool,
   files: File[],
   batchTime: number,
-  addResultsBatch: (results: { result: ParseResult; fileName: string }[]) => void,
+  addResult: (r: ParseResult, n: string) => void,
   addErrorResult: (n: string, t: number) => void,
   parallel: boolean,
 ): Promise<void> => {
   const batchType = parallel ? "parallel" : "sequential";
   console.time(`process-batch-${batchType}-${files.length}-files`);
 
-  let pendingResults: { result: ParseResult; fileName: string }[] = [];
-  let pendingTimeout: ReturnType<typeof setTimeout> | null = null;
-  const BATCH_SIZE = 20; // Update UI every 20 files
-  const BATCH_DELAY = 200; // or every 200ms
-
-  const flushResults = () => {
-    if (pendingResults.length > 0) {
-      addResultsBatch([...pendingResults]);
-      pendingResults = [];
-      if (pendingTimeout) clearTimeout(pendingTimeout);
-      pendingTimeout = null;
-    }
-  };
-
   const processOne = async (file: File) => {
     console.time(`process-file-${file.name}`);
     try {
       const result = await workerPool.processFile(file);
-      pendingResults.push({ result, fileName: result.fileName });
+      addResult(result, result.fileName);
       pop.play();
-
-      if (pendingResults.length >= BATCH_SIZE) {
-        flushResults();
-      } else if (!pendingTimeout) {
-        pendingTimeout = setTimeout(flushResults, BATCH_DELAY);
-      }
-
     } catch (error) {
       console.error("Error processing file:", error);
       addErrorResult(file.name, batchTime);
@@ -284,9 +202,6 @@ const processFilesBatch = async (
   } else {
     for (const file of files) await processOne(file);
   }
-
-  // Ensure any remaining results are flushed
-  flushResults();
 
   console.timeEnd(`process-batch-${batchType}-${files.length}-files`);
 };
@@ -385,7 +300,7 @@ function App() {
   const {
     fileResults,
     lanidNames,
-    addResultsBatch,
+    addResult,
     addErrorResult,
     clearAllResults,
   } = useFileResults();
@@ -413,7 +328,7 @@ function App() {
             workerPool,
             small,
             batchTime,
-            addResultsBatch,
+            addResult,
             addErrorResult,
             true,
           ),
@@ -421,7 +336,7 @@ function App() {
             workerPool,
             large,
             batchTime,
-            addResultsBatch,
+            addResult,
             addErrorResult,
             false,
           ),
@@ -434,7 +349,7 @@ function App() {
         console.timeEnd("total-process-files");
       }
     },
-    [workerPool, addResultsBatch, addErrorResult],
+    [workerPool, addResult, addErrorResult],
   );
 
   return (
