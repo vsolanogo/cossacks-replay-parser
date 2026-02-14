@@ -1,5 +1,4 @@
 import React from "react";
-import type { GameInfo } from "./fileParser.worker";
 import steamImg from "./images/cropped_steam_image.png";
 import { CHEATERS_LANID } from "./CHEATERS_LANID";
 
@@ -12,24 +11,6 @@ const createSteamUrl = (steamId: number | string): string => {
   } catch {
     return "";
   }
-};
-
-const filterValidPlayers = (players: any[]): any[] => {
-  return players.filter((p) => {
-    const bexists = (p as any)?.bexists === true;
-    const lanidZero = p.lanid === 0;
-    const nameStr = (p as any)?.name ? String((p as any).name) : "";
-    const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
-    // Hide obvious empty slots like: name (id: N) lanid 0 team 0 color X
-    const isEmptySlot = lanidZero && isPlaceholderName;
-    return bexists && !isEmptySlot;
-  });
-};
-
-// Custom hook
-const useFilteredPlayers = (data?: GameInfo | null) => {
-  if (!data?.players) return [];
-  return filterValidPlayers(data.players);
 };
 
 // Small components
@@ -163,21 +144,19 @@ const PlayerItem: React.FC<{
 
 // Main component
 export type PlayersListProps = {
-  data?: GameInfo | null | undefined;
+  validPlayers: any[];
   lanidNames: Record<string | number, string[]>;
 };
 
 export const PlayersList: React.FC<PlayersListProps> = ({
-  data,
+  validPlayers,
   lanidNames,
 }) => {
-  const players = useFilteredPlayers(data);
-
-  if (!players.length) return <>—</>;
+  if (!validPlayers.length) return <>—</>;
 
   return (
     <ul className="players-list">
-      {players.map((player) => (
+      {validPlayers.map((player) => (
         <PlayerItem
           key={`${player.id}-${player.lanid}-${player.color}`}
           player={player}

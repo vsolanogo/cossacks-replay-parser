@@ -8,7 +8,16 @@ import { successHowl } from "./howler/success";
 import { saveResults, loadResults, clearResults } from "./indexedDBUtils";
 import { PlayersList } from "./PlayersList";
 
-type ResultRow = ParseResult & { key: string; uploadedAt: number };
+type ResultRow = ParseResult & {
+  key: string;
+  uploadedAt: number;
+  validPlayers: any[]; // Pre-filtered players
+};
+
+type ProcessedData = {
+  results: ResultRow[];
+  lanidNames: Record<string, string[]>;
+};
 
 const useWorkerPool = () => {
   const [workerPool, setWorkerPool] = useState<WorkerPool | null>(null);
@@ -46,16 +55,57 @@ const buildLanidNamesFromResults = (
   return result;
 };
 
+// Moved from PlayersList to be used here
+const filterValidPlayers = (players: any[]): any[] => {
+  return players.filter((p) => {
+    const bexists = (p as any)?.bexists === true;
+    const lanidZero = p.lanid === 0;
+    const nameStr = (p as any)?.name ? String((p as any).name) : "";
+    const isPlaceholderName = nameStr.trim().toLowerCase() === "name";
+    const isEmptySlot = lanidZero && isPlaceholderName;
+    return bexists && !isEmptySlot;
+  });
+};
+
 const useFileResults = () => {
-  const [fileResults, setFileResults] = useState<ResultRow[]>([]);
+  const [processedData, setProcessedData] = useState<ProcessedData>({
+    results: [],
+    lanidNames: {},
+  });
+
+  // Helper to recompute derived data
+  const updateState = (newResults: ResultRow[]) => {
+    // Sort once
+    const sorted = newResults.sort(
+      (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
+    );
+    // Compute lanidNames once
+    const lanidNames = buildLanidNamesFromResults(sorted);
+
+    setProcessedData({
+      results: sorted,
+      lanidNames,
+    });
+  };
 
   // Load on mount only
   useEffect(() => {
     console.time("load-results");
     loadResults()
-      .then((results) => {
-        const valid = Array.isArray(results) ? (results as ResultRow[]) : [];
-        setFileResults(valid);
+      .then((loadedResults) => {
+        const valid = Array.isArray(loadedResults)
+          ? (loadedResults as ResultRow[])
+          : [];
+
+        // Pre-process: add validPlayers to each row
+        const prepared = valid.map((r) => ({
+          ...r,
+          validPlayers: r.data?.players
+            ? filterValidPlayers(r.data.players)
+            : [],
+        }));
+
+        updateState(prepared);
         console.timeEnd("load-results");
       })
       .catch((e) => {
@@ -79,10 +129,10 @@ const useFileResults = () => {
     (result: ParseResult, fileName: string) => {
       console.time(`add-result-${fileName}`);
 
-      setFileResults((prev) => {
+      setProcessedData((prev) => {
         const gameId = result.data?.gameId;
         const existingIndex = gameId
-          ? prev.findIndex((r) => r.data?.gameId === gameId)
+          ? prev.results.findIndex((r) => r.data?.gameId === gameId)
           : -1;
 
         const newRow: ResultRow = {
@@ -91,18 +141,28 @@ const useFileResults = () => {
           fileName,
           data: result.data ?? null,
           status: result.status,
+          validPlayers: result.data?.players
+            ? filterValidPlayers(result.data.players)
+            : [],
         };
 
-        const updated =
+        const currentList = prev.results;
+        const updatedList =
           existingIndex !== -1
-            ? prev.map((r, i) => (i === existingIndex ? newRow : r))
-            : [newRow, ...prev];
+            ? currentList.map((r, i) => (i === existingIndex ? newRow : r))
+            : [newRow, ...currentList];
 
-        // IndexedDB is async, doesn't block React's state update
-        persistResults(updated);
+        // IndexedDB is async
+        persistResults(updatedList);
+
+        // Re-process for state
+        const sorted = updatedList.sort(
+          (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
+        );
+        const lanidNames = buildLanidNamesFromResults(sorted);
 
         console.timeEnd(`add-result-${fileName}`);
-        return updated;
+        return { results: sorted, lanidNames };
       });
     },
     [persistResults],
@@ -112,22 +172,28 @@ const useFileResults = () => {
     (fileName: string, batchTime: number) => {
       console.time(`add-error-result-${fileName}`);
 
-      setFileResults((prev) => {
-        const updated = [
-          {
-            key: `${fileName}-${Date.now()}-${Math.random()}`,
-            uploadedAt: batchTime,
-            fileName,
-            data: null,
-            status: "error" as ParseResultStatus,
-          },
-          ...prev,
-        ];
+      setProcessedData((prev) => {
+        const newRow: ResultRow = {
+          key: `${fileName}-${Date.now()}-${Math.random()}`,
+          uploadedAt: batchTime,
+          fileName,
+          data: null,
+          status: "error" as ParseResultStatus,
+          validPlayers: [],
+        };
 
-        persistResults(updated);
+        const updatedList = [newRow, ...prev.results];
+
+        persistResults(updatedList);
+
+        // Re-process
+        const sorted = updatedList.sort(
+          (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
+        );
+        const lanidNames = buildLanidNamesFromResults(sorted);
 
         console.timeEnd(`add-error-result-${fileName}`);
-        return updated;
+        return { results: sorted, lanidNames };
       });
     },
     [persistResults],
@@ -138,12 +204,12 @@ const useFileResults = () => {
     await clearResults().catch((e) =>
       console.error("Failed to clear results", e),
     );
-    setFileResults([]);
+    setProcessedData({ results: [], lanidNames: {} });
     console.timeEnd("clear-all-results");
   }, []);
 
   return {
-    fileResults,
+    ...processedData,
     addResult,
     addErrorResult,
     clearAllResults,
@@ -237,9 +303,13 @@ const ClearHistoryButton = ({
   </button>
 );
 
-const ResultsTable = ({ fileResults }: { fileResults: ResultRow[] }) => {
-  const lanidNames = buildLanidNamesFromResults(fileResults);
-
+const ResultsTable = ({
+  results,
+  lanidNames,
+}: {
+  results: ResultRow[];
+  lanidNames: Record<string, string[]>;
+}) => {
   console.time("render-results-table");
   const table = (
     <table className="results-table">
@@ -252,18 +322,19 @@ const ResultsTable = ({ fileResults }: { fileResults: ResultRow[] }) => {
         </tr>
       </thead>
       <tbody>
-        {fileResults
-          .sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0))
-          .map((row, idx) => (
-            <tr key={row.key}>
-              <td>{idx + 1}</td>
-              <td>{row.fileName}</td>
-              <td>
-                <PlayersList data={row.data} lanidNames={lanidNames} />
-              </td>
-              <td>{row.status}</td>
-            </tr>
-          ))}
+        {results.map((row, idx) => (
+          <tr key={row.key}>
+            <td>{idx + 1}</td>
+            <td>{row.fileName}</td>
+            <td>
+              <PlayersList
+                validPlayers={row.validPlayers}
+                lanidNames={lanidNames}
+              />
+            </td>
+            <td>{row.status}</td>
+          </tr>
+        ))}
       </tbody>
     </table>
   );
@@ -274,8 +345,8 @@ const ResultsTable = ({ fileResults }: { fileResults: ResultRow[] }) => {
 function App() {
   const workerPool = useWorkerPool();
   const {
-    fileResults,
-
+    results,
+    lanidNames,
     addResult,
     addErrorResult,
     clearAllResults,
@@ -342,7 +413,7 @@ function App() {
           />
           <ClearHistoryButton
             loading={loading}
-            hasResults={fileResults.length > 0}
+            hasResults={results.length > 0}
             onClearHistory={clearAllResults}
           />
           {loading && (
@@ -350,7 +421,9 @@ function App() {
               Processing files...
             </div>
           )}
-          {fileResults.length > 0 && <ResultsTable fileResults={fileResults} />}
+          {results.length > 0 && (
+            <ResultsTable results={results} lanidNames={lanidNames} />
+          )}
         </div>
       </div>
     </div>
