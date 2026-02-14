@@ -30,7 +30,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   padding: 1.5rem;
-  /* backdrop-filter: blur(8px); */
   color: #f2f4f8;
 }
 
@@ -136,8 +135,6 @@
 
 .btn:not(:disabled):hover {
   transform: translateY(-1px);
-  filter: brightness(1.05);
-  /* box-shadow: 0 10px 24px rgba(34, 211, 238, 0.35); */
 }
 
 .spinner {
@@ -243,7 +240,6 @@
   font-family:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  /* box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.35) inset, 0 6px 14px rgba(255, 77, 79, 0.35); */
   letter-spacing: 0.02em;
 }
 
@@ -256,11 +252,10 @@
 .lanid-badge--multi {
   position: relative;
   cursor: help;
-  outline: 1px dashed rgba(255, 255, 255, 0.35);
+  outline: 1px dashed #ffb703;
   background: linear-gradient(90deg, #ff1f1f, #ffb703, #ff1f1f);
   background-size: 300% 100%;
-  animation: lanid-scan 1.6s linear infinite;
-  /* box-shadow: 0 0 0 1px rgba(255, 77, 79, 0.6) inset, 0 10px 22px rgba(255, 77, 79, 0.5); */
+  /* animation: lanid-scan 1.6s linear infinite; */
 }
 
 .lanid-badge--multi:hover {
@@ -280,7 +275,6 @@
   padding: 8px 10px;
   min-width: 180px;
   max-width: 260px;
-  /* box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(123, 92, 255, 0.15) inset; */
   opacity: 0;
   pointer-events: none;
   transform: translateY(-4px) scale(0.98);
@@ -335,7 +329,6 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  /* box-shadow: 0 8px 20px rgba(244, 67, 54, 0.25), 0 0 0 1px rgba(244, 67, 54, 0.25) inset; */
   background:
     radial-gradient(120% 60% at 0% 0%,
       rgba(255, 255, 255, 0.22),
@@ -394,7 +387,6 @@
 /* Extra Steam links highlight (replaces inline styles) */
 .steam-extras {
   border: 1px solid rgba(30, 144, 255, 0.6);
-  /* box-shadow: 0 0 0 2px rgba(30, 144, 255, 0.15) inset; */
   padding: 2px 6px;
   border-radius: 8px;
   margin-left: 8px;
@@ -441,7 +433,6 @@
   font-size: 12px;
   /* white-space: nowrap; */
   word-break: break-all;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .steam-link-wrapper:hover .steam-tooltip {
