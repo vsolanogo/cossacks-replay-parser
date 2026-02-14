@@ -55,9 +55,7 @@ const useFileResults = () => {
     loadResults()
       .then((results) => {
         const valid = Array.isArray(results) ? (results as ResultRow[]) : [];
-        setFileResults(
-          valid.sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0)),
-        );
+        setFileResults(valid);
         setLanidNames(buildLanidNamesFromResults(valid));
         console.timeEnd("load-results");
       })
@@ -114,15 +112,11 @@ const useFileResults = () => {
             ? prev.map((r, i) => (i === existingIndex ? newRow : r))
             : [newRow, ...prev];
 
-        const sorted = updated.sort(
-          (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
-        );
-
         // IndexedDB is async, doesn't block React's state update
-        persistResults(sorted);
+        persistResults(updated);
 
         console.timeEnd(`add-result-${fileName}`);
-        return sorted;
+        return updated;
       });
     },
     [persistResults],
@@ -142,7 +136,7 @@ const useFileResults = () => {
             status: "error" as ParseResultStatus,
           },
           ...prev,
-        ].sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
+        ];
 
         persistResults(updated);
 
@@ -278,16 +272,18 @@ const ResultsTable = ({
         </tr>
       </thead>
       <tbody>
-        {fileResults.map((row, idx) => (
-          <tr key={row.key}>
-            <td>{idx + 1}</td>
-            <td>{row.fileName}</td>
-            <td>
-              <PlayersList data={row.data} lanidNames={lanidNames} />
-            </td>
-            <td>{row.status}</td>
-          </tr>
-        ))}
+        {fileResults
+          .sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0))
+          .map((row, idx) => (
+            <tr key={row.key}>
+              <td>{idx + 1}</td>
+              <td>{row.fileName}</td>
+              <td>
+                <PlayersList data={row.data} lanidNames={lanidNames} />
+              </td>
+              <td>{row.status}</td>
+            </tr>
+          ))}
       </tbody>
     </table>
   );
