@@ -34,15 +34,15 @@ const useFilteredPlayers = (data?: GameInfo | null) => {
 };
 
 // Small components
-const ColorChip: React.FC<{ color: number }> = ({ color }) => {
+const ColorChip: React.FC<{ color: number }> = React.memo(({ color }) => {
   return <span className={`color-chip color-${color}`} />;
-};
+});
 
 const SteamProfileLink: React.FC<{
   steamId?: number | string | undefined;
   name?: string | undefined;
   className?: string;
-}> = ({ steamId, name, className = "" }) => {
+}> = React.memo(({ steamId, name, className = "" }) => {
   if (!steamId || String(steamId) === "0") return null;
   const url = createSteamUrl(steamId);
 
@@ -67,44 +67,58 @@ const SteamProfileLink: React.FC<{
     );
 
   return null;
-};
+});
 
 const LanidBadge: React.FC<{
   lanid: number;
   playerName: string;
   lanidNames: Record<string | number, string[]>;
-}> = ({ lanid, playerName, lanidNames }) => {
-  const namesArr = lanidNames[lanid] ?? [];
-  const hasMultiple = namesArr.length > 1;
-  const otherNames = namesArr.filter((n) => n !== playerName);
+}> = React.memo(
+  ({ lanid, playerName, lanidNames }) => {
+    const namesArr = lanidNames[lanid] ?? [];
+    const hasMultiple = namesArr.length > 1;
+    const otherNames = namesArr.filter((n) => n !== playerName);
 
-  return (
-    <span className="lanid-badge-wrapper">
-      <span
-        className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}
-      >
-        {lanid}
+    return (
+      <span className="lanid-badge-wrapper">
+        <span
+          className={`lanid-badge${hasMultiple ? " lanid-badge--multi" : ""}`}
+        >
+          {lanid}
+        </span>
+        {CHEATERS_LANID.includes(lanid) && (
+          <span className="cheater-badge" title="Reported cheater">
+            🚨 cheater
+          </span>
+        )}
+        {hasMultiple && (
+          <span className="lanid-tooltip" role="tooltip">
+            <div className="lanid-tooltip-title">Other names</div>
+            <ul className="lanid-tooltip-list">
+              {otherNames.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          </span>
+        )}
       </span>
-      {CHEATERS_LANID.includes(lanid) && (
-        <span className="cheater-badge" title="Reported cheater">
-          🚨 cheater
-        </span>
-      )}
-      {hasMultiple && (
-        <span className="lanid-tooltip" role="tooltip">
-          <div className="lanid-tooltip-title">Other names</div>
-          <ul className="lanid-tooltip-list">
-            {otherNames.map((n) => (
-              <li key={n}>{n}</li>
-            ))}
-          </ul>
-        </span>
-      )}
-    </span>
-  );
-};
+    );
+  },
+  (prev, next) => {
+    // Custom comparison for lanidNames to avoid re-rendering if the specific lanid entry hasn't changed
+    if (prev.lanid !== next.lanid || prev.playerName !== next.playerName) {
+      return false;
+    }
+    const prevNames = prev.lanidNames[prev.lanid];
+    const nextNames = next.lanidNames[next.lanid];
+    if (prevNames === nextNames) return true;
+    if (!prevNames || !nextNames) return prevNames === nextNames;
+    if (prevNames.length !== nextNames.length) return false;
+    return prevNames.every((val, index) => val === nextNames[index]);
+  },
+);
 
-const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
+const ExtraSteamLinks: React.FC<{ player: any }> = React.memo(({ player }) => {
   const extras: Array<{ id?: number | string; name?: string }> = [
     { id: (player as any)?.si1, name: (player as any)?.sn1 },
     { id: (player as any)?.si2, name: (player as any)?.sn2 },
@@ -116,7 +130,7 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
 
   const links = extras
     .filter(
-      (e) => e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr
+      (e) => e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr,
     )
     .map((e, idx) => (
       <SteamProfileLink
@@ -134,12 +148,12 @@ const ExtraSteamLinks: React.FC<{ player: any }> = ({ player }) => {
       {links}
     </span>
   ) : null;
-};
+});
 
 const PlayerItem: React.FC<{
   player: any;
   lanidNames: Record<string | number, string[]>;
-}> = ({ player, lanidNames }) => {
+}> = React.memo(({ player, lanidNames }) => {
   return (
     <li key={`${player.id}-${player.lanid}-${player.color}`}>
       {player.name} (id: {player.id})
@@ -158,7 +172,7 @@ const PlayerItem: React.FC<{
       <ColorChip color={player.color} />
     </li>
   );
-};
+});
 
 // Main component
 export type PlayersListProps = {
