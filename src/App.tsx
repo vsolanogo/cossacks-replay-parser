@@ -41,13 +41,13 @@ const buildLanidNamesFromResults = (
       },
       {} as Record<string, string[]>,
     );
+
   console.timeEnd("build-lanid-names");
   return result;
 };
 
 const useFileResults = () => {
   const [fileResults, setFileResults] = useState<ResultRow[]>([]);
-  const [lanidNames, setLanidNames] = useState<Record<string, string[]>>({});
 
   // Load on mount only
   useEffect(() => {
@@ -56,7 +56,6 @@ const useFileResults = () => {
       .then((results) => {
         const valid = Array.isArray(results) ? (results as ResultRow[]) : [];
         setFileResults(valid);
-        setLanidNames(buildLanidNamesFromResults(valid));
         console.timeEnd("load-results");
       })
       .catch((e) => {
@@ -79,19 +78,6 @@ const useFileResults = () => {
   const addResult = useCallback(
     (result: ParseResult, fileName: string) => {
       console.time(`add-result-${fileName}`);
-      const players = result.data?.players;
-
-      if (players?.length) {
-        setLanidNames((prev) => {
-          const next = { ...prev };
-          players.forEach(({ lanid, name }) => {
-            if (!name) return;
-            const key = String(lanid);
-            if (!next[key]?.includes(name)) (next[key] ??= []).push(name);
-          });
-          return next;
-        });
-      }
 
       setFileResults((prev) => {
         const gameId = result.data?.gameId;
@@ -153,13 +139,11 @@ const useFileResults = () => {
       console.error("Failed to clear results", e),
     );
     setFileResults([]);
-    setLanidNames({});
     console.timeEnd("clear-all-results");
   }, []);
 
   return {
     fileResults,
-    lanidNames,
     addResult,
     addErrorResult,
     clearAllResults,
@@ -253,13 +237,9 @@ const ClearHistoryButton = ({
   </button>
 );
 
-const ResultsTable = ({
-  fileResults,
-  lanidNames,
-}: {
-  fileResults: ResultRow[];
-  lanidNames: Record<string, string[]>;
-}) => {
+const ResultsTable = ({ fileResults }: { fileResults: ResultRow[] }) => {
+  const lanidNames = buildLanidNamesFromResults(fileResults);
+
   console.time("render-results-table");
   const table = (
     <table className="results-table">
@@ -295,7 +275,7 @@ function App() {
   const workerPool = useWorkerPool();
   const {
     fileResults,
-    lanidNames,
+
     addResult,
     addErrorResult,
     clearAllResults,
@@ -370,9 +350,7 @@ function App() {
               Processing files...
             </div>
           )}
-          {fileResults.length > 0 && (
-            <ResultsTable fileResults={fileResults} lanidNames={lanidNames} />
-          )}
+          {fileResults.length > 0 && <ResultsTable fileResults={fileResults} />}
         </div>
       </div>
     </div>
