@@ -24,8 +24,13 @@ type ProcessedPlayer = {
   color: number;
   team: number;
   steamId?: string | number | undefined;
+  steamUrl?: string | undefined;
   steamName?: string;
-  extraSteamLinks: Array<{ id: string | number; name?: string }>;
+  extraSteamLinks: Array<{
+    id: string | number;
+    name?: string;
+    url: string;
+  }>;
 };
 
 type ProcessedData = {
@@ -69,6 +74,15 @@ const buildLanidNamesFromResults = (
   return result;
 };
 
+const createSteamUrl = (steamId: number | string): string => {
+  try {
+    const STEAM_ID_OFFSET = 76561197960265728n;
+    return `https://steamcommunity.com/profiles/${(STEAM_ID_OFFSET + BigInt(String(steamId))).toString()}`;
+  } catch {
+    return "";
+  }
+};
+
 // Moved from PlayersList to be used here
 // Moved from PlayersList to be used here
 const processPlayers = (players: any[]): ProcessedPlayer[] => {
@@ -94,7 +108,11 @@ const processPlayers = (players: any[]): ProcessedPlayer[] => {
           (e) =>
             e.id != null && String(e.id) !== "0" && String(e.id) !== primaryStr,
         )
-        .map((e) => ({ id: e.id, name: e.name }));
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          url: createSteamUrl(e.id as string | number),
+        }));
 
       return {
         original: p,
@@ -104,6 +122,7 @@ const processPlayers = (players: any[]): ProcessedPlayer[] => {
         color: p.color,
         team: p.team,
         steamId: primary,
+        steamUrl: primary ? createSteamUrl(primary) : undefined,
         steamName: (p as any)?.snc,
         extraSteamLinks: extras,
       };

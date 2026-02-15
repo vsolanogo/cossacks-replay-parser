@@ -4,14 +4,6 @@ import { CHEATERS_LANID } from "./CHEATERS_LANID";
 
 // Constants
 
-const createSteamUrl = (steamId: number | string): string => {
-  try {
-    const STEAM_ID_OFFSET = 76561197960265728n;
-    return `https://steamcommunity.com/profiles/${(STEAM_ID_OFFSET + BigInt(String(steamId))).toString()}`;
-  } catch {
-    return "";
-  }
-};
 
 // Small components
 const ColorChip: React.FC<{ color: number }> = ({ color }) => {
@@ -19,34 +11,30 @@ const ColorChip: React.FC<{ color: number }> = ({ color }) => {
 };
 
 const SteamProfileLink: React.FC<{
-  steamId?: number | string | undefined;
+  url?: string | undefined;
   name?: string | undefined;
   className?: string;
-}> = ({ steamId, name, className = "" }) => {
-  if (!steamId || String(steamId) === "0") return null;
-  const url = createSteamUrl(steamId);
+}> = ({ url, name, className = "" }) => {
+  if (!url) return null;
 
-  if (url.length > 0)
-    return (
-      <span className="steam-link-wrapper">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          title={name ? `Open Steam profile: ${name}` : "Open Steam profile"}
-          className={`steam-link ${className}`}
-        >
-          <img src={steamImg} alt="Steam" className="steam-icon" />
-          {name ? <span>{name}</span> : null}
-        </a>
-        <div className="steam-tooltip" role="tooltip">
-          <div className="steam-tooltip-arrow" />
-          <div className="steam-tooltip-content">{url}</div>
-        </div>
-      </span>
-    );
-
-  return null;
+  return (
+    <span className="steam-link-wrapper">
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={name ? `Open Steam profile: ${name}` : "Open Steam profile"}
+        className={`steam-link ${className}`}
+      >
+        <img src={steamImg} alt="Steam" className="steam-icon" />
+        {name ? <span>{name}</span> : null}
+      </a>
+      <div className="steam-tooltip" role="tooltip">
+        <div className="steam-tooltip-arrow" />
+        <div className="steam-tooltip-content">{url}</div>
+      </div>
+    </span>
+  );
 };
 
 const LanidBadge: React.FC<{
@@ -85,12 +73,12 @@ const LanidBadge: React.FC<{
 };
 
 const ExtraSteamLinks: React.FC<{
-  links: Array<{ id: string | number; name?: string }>;
+  links: Array<{ id: string | number; name?: string; url: string }>;
 }> = ({ links }) => {
   const renderedLinks = links.map((e, idx) => (
     <SteamProfileLink
       key={`ex-${idx}`}
-      steamId={e.id}
+      url={e.url}
       name={e.name}
       className="steam-link--extra"
     />
@@ -111,8 +99,7 @@ const PlayerItem: React.FC<{
   return (
     <li key={`${player.id}-${player.lanid}-${player.color}`}>
       {player.name} (id: {player.id})
-      <SteamProfileLink steamId={player.steamId} name={player.steamName} />{" "}
-      lanid{" "}
+      <SteamProfileLink url={player.steamUrl} name={player.steamName} /> lanid{" "}
       <LanidBadge
         lanid={player.lanid}
         playerName={player.name}
@@ -135,8 +122,13 @@ export type PlayersListProps = {
     color: number;
     team: number;
     steamId?: string | number | undefined;
+    steamUrl?: string | undefined;
     steamName?: string;
-    extraSteamLinks: Array<{ id: string | number; name?: string }>;
+    extraSteamLinks: Array<{
+      id: string | number;
+      name?: string;
+      url: string;
+    }>;
   }[];
   lanidNames: Record<string | number, string[]>;
 };
