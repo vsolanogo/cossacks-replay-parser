@@ -424,7 +424,7 @@ function App() {
       setLoading(true);
       try {
         console.time("file-sorting");
-        const LIMIT = 30 * 1024 * 1024;
+        const LIMIT = 100 * 1024 * 1024;
         const batchTime = Date.now();
         const [small, large] = Array.from(files).reduce<[File[], File[]]>(
           ([s, l], f) => (f.size <= LIMIT ? [[...s, f], l] : [s, [...l, f]]),
