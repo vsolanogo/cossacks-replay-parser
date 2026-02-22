@@ -5,7 +5,7 @@ import { ParseResult } from "./fileParser.worker";
 import "./App.css";
 import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
-import { saveResults, loadResults, clearResults } from "./indexedDBUtils";
+import { loadResults, clearResults, putResult } from "./indexedDBUtils";
 import { PlayersList } from "./PlayersList";
 
 type ResultRow = ParseResult & {
@@ -176,17 +176,6 @@ const useFileResults = () => {
       });
   }, []);
 
-  // Helper to save with error handling
-  const persistResults = useCallback((results: ResultRow[]) => {
-    console.time("save-results");
-    saveResults(results)
-      .then(() => console.timeEnd("save-results"))
-      .catch((e) => {
-        console.error("Failed to save results", e);
-        console.timeEnd("save-results");
-      });
-  }, []);
-
   const addResult = useCallback(
     (result: ParseResult, fileName: string) => {
       console.time(`add-result-${fileName}`);
@@ -214,8 +203,6 @@ const useFileResults = () => {
             ? currentList.map((r, i) => (i === existingIndex ? newRow : r))
             : [newRow, ...currentList];
 
-        // IndexedDB is async
-        persistResults(updatedList);
 
         // Re-process for state
         const sorted = updatedList.sort(
@@ -227,7 +214,7 @@ const useFileResults = () => {
         return { results: sorted, lanidNames };
       });
     },
-    [persistResults],
+    [],
   );
 
   const addErrorResult = useCallback(
@@ -246,8 +233,6 @@ const useFileResults = () => {
 
         const updatedList = [newRow, ...prev.results];
 
-        persistResults(updatedList);
-
         // Re-process
         const sorted = updatedList.sort(
           (a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0),
@@ -258,7 +243,7 @@ const useFileResults = () => {
         return { results: sorted, lanidNames };
       });
     },
-    [persistResults],
+    [],
   );
 
   const clearAllResults = useCallback(async () => {
@@ -294,10 +279,38 @@ const processFilesBatch = async (
     try {
       const result = await workerPool.processFile(file);
       addResult(result, result.fileName);
+
+      const gameId = result.data?.gameId;
+
+      const newRow: ResultRow = {
+        key: gameId || `${file.name}-${Date.now()}-${Math.random()}`,
+        uploadedAt: Date.now(),
+        fileName: file.name,
+        data: result.data ?? null,
+        status: result.status,
+        validPlayers: result.data?.players
+          ? processPlayers(result.data.players)
+          : [],
+      };
+
+      putResult(newRow)
+
       pop.play();
     } catch (error) {
       console.error("Error processing file:", error);
       addErrorResult(file.name, batchTime);
+
+      const errorredRow: ResultRow = {
+        key: `${file.name}-${Date.now()}-${Math.random()}`,
+        uploadedAt: Date.now(),
+        fileName: file.name,
+        data: null,
+        status: "error" as ParseResultStatus,
+        validPlayers: [],
+      };
+
+      putResult(errorredRow)
+
     } finally {
       console.timeEnd(`process-file-${file.name}`);
     }

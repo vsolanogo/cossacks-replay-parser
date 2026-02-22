@@ -91,3 +91,17 @@ export async function clearResults(): Promise<void> {
     req.onerror = () => reject(req.error ?? new Error('Failed to clear object store'));
   });
 }
+
+export async function putResult<T extends Keyed>(result: T): Promise<void> {
+  const db = await initDB();
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+
+    const req = store.put(result); // ✔ insert or update
+
+    req.onsuccess = () => resolve();
+    req.onerror = () =>
+      reject(req.error ?? new Error('Failed to put result'));
+  });
+}
