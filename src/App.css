@@ -15,6 +15,27 @@
   z-index: 1;
 }
 
+.main-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.25rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #a3a3b5;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .results-table {
   margin-top: 1.5rem;
 }

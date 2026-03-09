@@ -481,19 +481,21 @@ function App() {
     <div className="app-container">
       <div className="main-card card">
         <h2>Cossacks 3 Replays Parser</h2>
-        <p>Upload `.rep` files to parse and display player info.</p>
+        <p className="subtitle">Upload `.rep` files to parse and display player info.</p>
 
         <div className="stack stack--full">
-          <FileInput
-            fileInputRef={fileInputRef}
-            loading={loading}
-            onFileSelect={processFiles}
-          />
-          <ClearHistoryButton
-            loading={loading}
-            hasResults={results.length > 0}
-            onClearHistory={clearAllResults}
-          />
+          <div className="action-buttons">
+            <FileInput
+              fileInputRef={fileInputRef}
+              loading={loading}
+              onFileSelect={processFiles}
+            />
+            <ClearHistoryButton
+              loading={loading}
+              hasResults={results.length > 0}
+              onClearHistory={clearAllResults}
+            />
+          </div>
           {results.length > 0 && <Insights2v2 results={results} />}
           {loading && (
             <div className="spinner" aria-live="polite">
