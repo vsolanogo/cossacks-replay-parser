@@ -23,6 +23,7 @@ type ProcessedPlayer = {
   lanid: number;
   color: number;
   team: number;
+  cid?: number;
   steamId?: string | number | undefined;
   steamUrl?: string | undefined;
   steamName?: string;
@@ -121,6 +122,7 @@ const processPlayers = (players: any[]): ProcessedPlayer[] => {
         lanid: p.lanid,
         color: p.color,
         team: p.team,
+        cid: p.cid,
         steamId: primary,
         steamUrl: primary ? createSteamUrl(primary) : undefined,
         steamName: (p as any)?.snc,

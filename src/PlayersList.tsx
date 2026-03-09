@@ -1,6 +1,15 @@
 import React from "react";
 import steamImg from "./images/cropped_steam_image.png";
 import { CHEATERS_LANID } from "./CHEATERS_LANID";
+import { nationCodes } from "./nation_codes";
+
+const flagsGlob = import.meta.glob("./images/flags/*.png", { eager: true, import: "default" }) as Record<string, string>;
+
+const getFlagUrl = (nationName: string | undefined) => {
+  if (!nationName) return undefined;
+  const path = `./images/flags/${nationName}.png`;
+  return flagsGlob[path];
+};
 
 // Constants
 
@@ -96,8 +105,17 @@ const PlayerItem: React.FC<{
   player: PlayersListProps["validPlayers"][0];
   lanidNames: Record<string | number, string[]>;
 }> = ({ player, lanidNames }) => {
+  const nationName = player.cid !== undefined ? nationCodes[player.cid as keyof typeof nationCodes] : undefined;
+  const flagUrl = getFlagUrl(nationName);
+
   return (
-    <li key={`${player.id}-${player.lanid}-${player.color}`}>
+    <li key={`${player.id}-${player.lanid}-${player.color}`} style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "4px" }}>
+      {nationName && (
+        <span className="nation-info" style={{ marginRight: "6px", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+          {flagUrl && <img src={flagUrl} alt={nationName} style={{ maxHeight: "28px", borderRadius: "2px" }} />}
+          <span style={{ fontSize: "0.9em", color: "#888" }}>{nationName}</span>
+        </span>
+      )}
       {player.name} (id: {player.id})
       <SteamProfileLink url={player.steamUrl} name={player.steamName} /> lanid{" "}
       <LanidBadge
@@ -121,6 +139,7 @@ export type PlayersListProps = {
     lanid: number;
     color: number;
     team: number;
+    cid?: number;
     steamId?: string | number | undefined;
     steamUrl?: string | undefined;
     steamName?: string;
