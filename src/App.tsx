@@ -7,6 +7,7 @@ import { pop } from "./howler/pop";
 import { successHowl } from "./howler/success";
 import { loadResults, clearResults, putResult } from "./indexedDBUtils";
 import { PlayersList } from "./PlayersList";
+import { Insights2v2 } from "./Insights";
 
 type ResultRow = ParseResult & {
   key: string;
@@ -493,6 +494,7 @@ function App() {
             hasResults={results.length > 0}
             onClearHistory={clearAllResults}
           />
+          {results.length > 0 && <Insights2v2 results={results} />}
           {loading && (
             <div className="spinner" aria-live="polite">
               Processing files...

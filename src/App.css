@@ -463,3 +463,156 @@
   position: relative;
   z-index: 2;
 }
+
+/* Insights Panel Styles */
+.insights-panel {
+  margin-top: 1rem;
+  background: rgba(20, 20, 40, 0.85);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.insights-title {
+  margin: 0 0 0.25rem 0;
+  color: #22d3ee;
+  font-size: 1.2rem;
+}
+
+.insights-subtitle {
+  margin: 0 0 1rem 0;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.insights-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.insight-box {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.insight-box h4 {
+  margin: 0 0 0.75rem 0;
+  color: #e9ecf1;
+}
+
+.insight-box ol {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.insight-box li {
+  margin-bottom: 0.5rem;
+}
+
+.insight-nation {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.insight-flag {
+  height: 16px;
+  border-radius: 2px;
+}
+
+.insight-count {
+  color: #aaa;
+  font-size: 0.9em;
+}
+
+.insights-subhead {
+  margin: 0 0 1rem 0;
+  color: #e9ecf1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.collapsible-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.collapsible-header:hover {
+  color: #22d3ee;
+}
+
+.collapse-icon {
+  font-family: monospace;
+  font-size: 1.2rem;
+  color: #aaa;
+}
+
+.collapsible-header:hover .collapse-icon {
+  color: #22d3ee;
+}
+
+.insights-opponents-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.insight-opp-row {
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.insight-opp-main {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.insight-opp-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.insight-opp-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.insight-opp-group strong {
+  color: #ccf4ff;
+  min-width: 190px;
+}
+
+.insight-opp-items {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.insight-never-faced strong {
+  color: #ffb3b3;
+}
+
+.text-muted {
+  color: #888;
+  font-style: italic;
+}
