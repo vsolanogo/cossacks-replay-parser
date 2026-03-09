@@ -100,21 +100,21 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
 
     if (valid2v2Matches === 0) return null;
 
-    // 1) Top 3 most popular
+    // 1) Top 5 most popular
     const sortedNations = Object.entries(nationCounts)
       .map(([cidStr, count]) => ({ cid: Number(cidStr), count }))
       .sort((a, b) => b.count - a.count);
 
-    const mostPopular = sortedNations.slice(0, 3);
+    const mostPopular = sortedNations.slice(0, 5);
 
-    // 2) Top 3 least popular (nations that were picked at least once, or you can include 0 picks)
+    // 2) Top 5 least popular (nations that were picked at least once, or you can include 0 picks)
     // To be accurate, we should include nations with 0 picks:
     const allNationsPopularity = ALL_NON_RANDOM_NATIONS.map((cid) => ({
       cid,
       count: nationCounts[cid] || 0,
     })).sort((a, b) => a.count - b.count);
     
-    const leastPopular = allNationsPopularity.slice(0, 3);
+    const leastPopular = allNationsPopularity.slice(0, 5);
 
     // 3 & 4) Opponent stats per nation
     const opponentStats = ALL_NON_RANDOM_NATIONS.map((cid) => {
@@ -171,7 +171,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
 
       <div className="insights-grid">
         <div className="insight-box">
-          <h4>🏆 Top 3 Most Popular Nations</h4>
+          <h4>🏆 Top 5 Most Popular Nations</h4>
           <ol>
             {stats.mostPopular.map((n) => (
               <li key={n.cid}>{renderNation(n.cid, n.count)}</li>
@@ -180,7 +180,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
         </div>
 
         <div className="insight-box">
-          <h4>📉 Top 3 Least Popular Nations</h4>
+          <h4>📉 Top 5 Least Popular Nations</h4>
           <ol>
             {stats.leastPopular.map((n) => (
               <li key={n.cid}>{renderNation(n.cid, n.count)}</li>
