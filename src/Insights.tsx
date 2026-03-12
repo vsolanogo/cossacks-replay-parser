@@ -82,9 +82,9 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
 
       // Record player appearances to find the most popular player
       activePlayers.forEach((p) => {
-        const id = p.steamId ? String(p.steamId) : p.name;
+        const id = String(p.lanid);
         if (!playerMatchCounts[id]) {
-          playerMatchCounts[id] = { count: 0, name: p.name || id };
+          playerMatchCounts[id] = { count: 0, name: p.name || `LAN ID: ${p.lanid}` };
           if (p.steamUrl) playerMatchCounts[id]!.steamUrl = p.steamUrl;
         }
         playerMatchCounts[id]!.count++;
@@ -131,36 +131,34 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
       }
     });
 
-    const allyCounts: Record<string, { count: number; name: string; steamUrl?: string | undefined; steamId?: string | undefined }> = {};
-    const enemyCounts: Record<string, { count: number; name: string; steamUrl?: string | undefined; steamId?: string | undefined }> = {};
+    const allyCounts: Record<string, { count: number; name: string; steamUrl?: string | undefined; lanid: number }> = {};
+    const enemyCounts: Record<string, { count: number; name: string; steamUrl?: string | undefined; lanid: number }> = {};
 
     if (mostPopularPlayerId) {
       validMatchesData.forEach(({ teamA, teamB }) => {
-        const inTeamA = teamA.some((p) => (p.steamId ? String(p.steamId) : p.name) === mostPopularPlayerId);
-        const inTeamB = teamB.some((p) => (p.steamId ? String(p.steamId) : p.name) === mostPopularPlayerId);
+        const inTeamA = teamA.some((p) => String(p.lanid) === mostPopularPlayerId);
+        const inTeamB = teamB.some((p) => String(p.lanid) === mostPopularPlayerId);
 
         if (inTeamA || inTeamB) {
           const myTeam = inTeamA ? teamA : teamB;
           const enemyTeam = inTeamA ? teamB : teamA;
 
           myTeam.forEach((p) => {
-            const id = p.steamId ? String(p.steamId) : p.name;
+            const id = String(p.lanid);
             if (id !== mostPopularPlayerId) {
               if (!allyCounts[id]) {
-                allyCounts[id] = { count: 0, name: p.name || id };
+                allyCounts[id] = { count: 0, name: p.name || `LAN ID: ${p.lanid}`, lanid: p.lanid };
                 if (p.steamUrl) allyCounts[id].steamUrl = p.steamUrl;
-                if (p.steamId) allyCounts[id].steamId = String(p.steamId);
               }
               allyCounts[id]!.count++;
             }
           });
 
           enemyTeam.forEach((p) => {
-            const id = p.steamId ? String(p.steamId) : p.name;
+            const id = String(p.lanid);
             if (!enemyCounts[id]) {
-              enemyCounts[id] = { count: 0, name: p.name || id };
+              enemyCounts[id] = { count: 0, name: p.name || `LAN ID: ${p.lanid}`, lanid: p.lanid };
               if (p.steamUrl) enemyCounts[id].steamUrl = p.steamUrl;
-              if (p.steamId) enemyCounts[id].steamId = String(p.steamId);
             }
             enemyCounts[id]!.count++;
           });
@@ -249,8 +247,8 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
     );
   };
 
-  const renderPlayerNameWithTooltip = (name: string, steamId?: string, steamUrl?: string) => {
-    if (!steamId) return <strong>{name}</strong>;
+  const renderPlayerNameWithTooltip = (name: string, lanid?: number, steamUrl?: string) => {
+    if (lanid === undefined) return <strong>{name}</strong>;
     
     return (
       <span className="steam-link-wrapper">
@@ -258,7 +256,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
         <div className="steam-tooltip">
           <div className="steam-tooltip-arrow"></div>
           <div className="steam-tooltip-content">
-            <div>ID: {steamId}</div>
+            <div>LAN ID: {lanid}</div>
             {steamUrl && (
               <a 
                 href={steamUrl} 
@@ -309,7 +307,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               👤 Most Active Player: 
               <span style={{ color: '#22d3ee' }}>
-                {renderPlayerNameWithTooltip(stats.popularPlayerInfo.name, stats.popularPlayerInfo.id !== stats.popularPlayerInfo.name ? stats.popularPlayerInfo.id : undefined, stats.popularPlayerInfo.steamUrl)}
+                {renderPlayerNameWithTooltip(stats.popularPlayerInfo.name, Number(stats.popularPlayerInfo.id), stats.popularPlayerInfo.steamUrl)}
               </span> 
               ({stats.popularPlayerInfo.totalMatches} matches)
             </span>
@@ -323,7 +321,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
                   <ol>
                     {stats.popularPlayerInfo.topAllies.map((ally, idx) => (
                       <li key={idx}>
-                        {renderPlayerNameWithTooltip(ally.name, ally.steamId, ally.steamUrl)}{" "}
+                        {renderPlayerNameWithTooltip(ally.name, ally.lanid, ally.steamUrl)}{" "}
                         <span className="insight-count">({ally.count} games)</span>
                       </li>
                     ))}
@@ -339,7 +337,7 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
                   <ol>
                     {stats.popularPlayerInfo.topEnemies.map((enemy, idx) => (
                       <li key={idx}>
-                        {renderPlayerNameWithTooltip(enemy.name, enemy.steamId, enemy.steamUrl)}{" "}
+                        {renderPlayerNameWithTooltip(enemy.name, enemy.lanid, enemy.steamUrl)}{" "}
                         <span className="insight-count">({enemy.count} games)</span>
                       </li>
                     ))}
