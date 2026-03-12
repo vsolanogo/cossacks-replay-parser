@@ -3,12 +3,11 @@
   /* allow full-width on large screens */
   width: 100%;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem 2rem 2rem 2rem;
   text-align: center;
 }
 
 .main-card {
-  margin-top: 2rem;
   overflow: visible;
   /* allow the card to grow with its contents */
   position: relative;

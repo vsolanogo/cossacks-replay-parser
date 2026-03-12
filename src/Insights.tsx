@@ -38,6 +38,11 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
     let valid2v2Matches = 0;
     const nationCounts: Record<number, number> = {};
     const opponentCounts: Record<number, Record<number, number>> = {};
+    const playerMatchCounts: Record<string, { count: number; name: string }> = {};
+    // Top player allies/enemies tracking will be computed in a second pass 
+    // or we can store all teams/matches and process later.
+    const validMatchesData: Array<{ teamA: ProcessedPlayer[]; teamB: ProcessedPlayer[] }> = [];
+
     const ALL_NON_RANDOM_NATIONS = Object.keys(nationCodes)
       .map(Number)
       .filter((n) => n !== 24); // Exclude Random
@@ -73,6 +78,17 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
       const teamA = teams[teamIds[0]!]!;
       const teamB = teams[teamIds[1]!]!;
 
+      validMatchesData.push({ teamA, teamB });
+
+      // Record player appearances to find the most popular player
+      activePlayers.forEach((p) => {
+        const id = p.steamId ? String(p.steamId) : p.name;
+        if (!playerMatchCounts[id]) {
+          playerMatchCounts[id] = { count: 0, name: p.name || id };
+        }
+        playerMatchCounts[id].count++;
+      });
+
       // Record picks
       activePlayers.forEach((p) => {
         const cid = p.cid!;
@@ -99,6 +115,56 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
     });
 
     if (valid2v2Matches === 0) return null;
+
+    // Find the most popular player
+    let mostPopularPlayerId: string | null = null;
+    let mostPopularPlayerName = "";
+    let maxPlayerMatches = 0;
+
+    Object.entries(playerMatchCounts).forEach(([id, data]) => {
+      if (data.count > maxPlayerMatches) {
+        maxPlayerMatches = data.count;
+        mostPopularPlayerId = id;
+        mostPopularPlayerName = data.name;
+      }
+    });
+
+    const allyCounts: Record<string, { count: number; name: string }> = {};
+    const enemyCounts: Record<string, { count: number; name: string }> = {};
+
+    if (mostPopularPlayerId) {
+      validMatchesData.forEach(({ teamA, teamB }) => {
+        const inTeamA = teamA.some((p) => (p.steamId ? String(p.steamId) : p.name) === mostPopularPlayerId);
+        const inTeamB = teamB.some((p) => (p.steamId ? String(p.steamId) : p.name) === mostPopularPlayerId);
+
+        if (inTeamA || inTeamB) {
+          const myTeam = inTeamA ? teamA : teamB;
+          const enemyTeam = inTeamA ? teamB : teamA;
+
+          myTeam.forEach((p) => {
+            const id = p.steamId ? String(p.steamId) : p.name;
+            if (id !== mostPopularPlayerId) {
+              if (!allyCounts[id]) allyCounts[id] = { count: 0, name: p.name || id };
+              allyCounts[id].count++;
+            }
+          });
+
+          enemyTeam.forEach((p) => {
+            const id = p.steamId ? String(p.steamId) : p.name;
+            if (!enemyCounts[id]) enemyCounts[id] = { count: 0, name: p.name || id };
+            enemyCounts[id].count++;
+          });
+        }
+      });
+    }
+
+    const topAllies = Object.values(allyCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
+      
+    const topEnemies = Object.values(enemyCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
 
     // 1) Top 5 most popular
     const sortedNations = Object.entries(nationCounts)
@@ -145,9 +211,16 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
       mostPopular,
       leastPopular,
       opponentStats,
+      popularPlayerInfo: mostPopularPlayerId ? {
+        name: mostPopularPlayerName,
+        totalMatches: maxPlayerMatches,
+        topAllies,
+        topEnemies
+      } : null
     };
   }, [results]);
 
+  const [isActivePlayerOpen, setIsActivePlayerOpen] = useState(true);
   const [isOpponentsOpen, setIsOpponentsOpen] = useState(false);
 
   if (!stats) return null;
@@ -188,6 +261,51 @@ export const Insights2v2: React.FC<{ results: ResultRow[] }> = ({ results }) => 
           </ol>
         </div>
       </div>
+
+      {stats.popularPlayerInfo && stats.popularPlayerInfo.totalMatches > 0 && (
+        <>
+          <h4 
+            className="insights-subhead collapsible-header"
+            onClick={() => setIsActivePlayerOpen(!isActivePlayerOpen)}
+          >
+            <span>👤 Most Active Player: <strong style={{ color: '#22d3ee' }}>{stats.popularPlayerInfo.name}</strong> ({stats.popularPlayerInfo.totalMatches} matches)</span>
+            <span className="collapse-icon">{isActivePlayerOpen ? '−' : '+'}</span>
+          </h4>
+          {isActivePlayerOpen && (
+            <div className="insights-grid">
+              <div className="insight-box">
+                <h4>🤝 Top 3 Friends (Allies)</h4>
+                {stats.popularPlayerInfo.topAllies.length > 0 ? (
+                  <ol>
+                    {stats.popularPlayerInfo.topAllies.map((ally, idx) => (
+                      <li key={idx}>
+                        <strong>{ally.name}</strong> <span className="insight-count">({ally.count} games)</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="text-muted">Not enough data</div>
+                )}
+              </div>
+
+              <div className="insight-box">
+                <h4>😈 Top 3 Nemesis (Opponents)</h4>
+                {stats.popularPlayerInfo.topEnemies.length > 0 ? (
+                  <ol>
+                    {stats.popularPlayerInfo.topEnemies.map((enemy, idx) => (
+                      <li key={idx}>
+                        <strong>{enemy.name}</strong> <span className="insight-count">({enemy.count} games)</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <div className="text-muted">Not enough data</div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       <h4 
         className="insights-subhead collapsible-header" 

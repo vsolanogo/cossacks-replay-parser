@@ -18,9 +18,10 @@ export class WorkerPool {
   private activeWorkers: number;
 
   constructor(
-    poolSize = navigator.hardwareConcurrency > 1
-      ? navigator.hardwareConcurrency - 1
-      : 4
+    poolSize = Math.min(
+      16,
+      (navigator.hardwareConcurrency || 4) + 2
+    )
   ) {
     this.poolSize = poolSize;
     this.workers = [];
