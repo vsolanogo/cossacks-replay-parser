@@ -105,3 +105,18 @@ export async function putResult<T extends Keyed>(result: T): Promise<void> {
       reject(req.error ?? new Error('Failed to put result'));
   });
 }
+
+/**
+ * Get the count of all stored results.
+ */
+export async function getResultsCount(): Promise<number> {
+  const db = await initDB();
+  return new Promise<number>((resolve, reject) => {
+    const tx = db.transaction([STORE_NAME], 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const req = store.count();
+
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error ?? new Error('Failed to get count'));
+  });
+}

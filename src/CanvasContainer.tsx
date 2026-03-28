@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import * as PIXI from "pixi.js";
 import React from "react";
+import { getResultsCount } from "./indexedDBUtils";
 
 let app: PIXI.Application | null = null;
 let playground: HTMLElement | null = null;
@@ -212,7 +213,11 @@ const CanvasContainerComponent = () => {
   }, [render]);
 
   useEffect(() => {
-    setRender(true);
+    getResultsCount().then(count => {
+      setRender(count <= 2000);
+    }).catch(() => {
+      setRender(true);
+    });
 
     const handleResultsCount = (e: Event) => {
       const customEvent = e as CustomEvent<number>;
