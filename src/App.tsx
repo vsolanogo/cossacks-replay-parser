@@ -8,7 +8,6 @@ import { successHowl } from "./howler/success";
 import { loadResults, clearResults, putResult } from "./indexedDBUtils";
 import { PlayersList } from "./PlayersList";
 import { Insights2v2 } from "./Insights";
-import { CanvasContainer } from "./CanvasContainer";
 
 type ResultRow = ParseResult & {
   key: string;
@@ -433,6 +432,12 @@ function App() {
   const [loading, setLoading] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  useEffect(() => {
+    document.dispatchEvent(
+      new CustomEvent("results-count-changed", { detail: results.length })
+    );
+  }, [results.length]);
+
   const processFiles = useCallback(
     async (files: FileList) => {
       console.time("total-process-files");
@@ -479,10 +484,8 @@ function App() {
   );
 
   return (
-    <>
-      {results.length <= 2000 && <CanvasContainer />}
-      <div className="app-container">
-        <div className="main-card card">
+    <div className="app-container">
+      <div className="main-card card">
         <h2>Cossacks 3 Replays Parser</h2>
         <p className="subtitle">Upload `.rep` files to parse and display player info.</p>
 
@@ -511,7 +514,6 @@ function App() {
         </div>
       </div>
     </div>
-    </>
   );
 }
 

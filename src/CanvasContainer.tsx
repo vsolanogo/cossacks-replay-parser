@@ -213,6 +213,20 @@ const CanvasContainerComponent = () => {
 
   useEffect(() => {
     setRender(true);
+
+    const handleResultsCount = (e: Event) => {
+      const customEvent = e as CustomEvent<number>;
+      if (customEvent.detail > 2000) {
+        setRender(false);
+      } else {
+        setRender(true);
+      }
+    };
+
+    document.addEventListener("results-count-changed", handleResultsCount);
+    return () => {
+      document.removeEventListener("results-count-changed", handleResultsCount);
+    };
   }, []);
 
   return <div id={canvasContainerName}></div>;
