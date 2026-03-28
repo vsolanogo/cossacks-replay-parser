@@ -20,6 +20,8 @@ const CanvasContainerComponent = () => {
       return;
     }
 
+    let isCancelled = false;
+
     (async function () {
       const option = {
         width: window.innerWidth,
@@ -29,9 +31,16 @@ const CanvasContainerComponent = () => {
         antialias: true,
       };
       // Initialize Pixi Application
-      app = new PIXI.Application();
+      const tempApp = new PIXI.Application();
 
-      await app.init(option);
+      await tempApp.init(option);
+
+      if (isCancelled) {
+        tempApp.destroy(true);
+        return;
+      }
+
+      app = tempApp;
 
       // Add the canvas to the HTML document
       if (app) {
@@ -200,8 +209,10 @@ const CanvasContainerComponent = () => {
     })();
 
     return () => {
+      isCancelled = true;
       if (app) {
         app.destroy(true);
+        app = null;
       }
       // if (animationFrameId) {
       //   cancelAnimationFrame(animationFrameId);
