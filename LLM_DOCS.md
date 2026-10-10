@@ -12,7 +12,7 @@ Base peasant production: 45 food per cycle
 
 Upgrades applied:
 
-Mill: +140%
+Mill: +140% (Improve grain crops treatment (Harvesting +140%))
 
 Academy: +40% +50% +50%
 
@@ -26,10 +26,10 @@ Total production per cycle:
 
 45 
 + (45 × 1.40) - Improve grain crops treatment (Harvesting +140%)
-+ (45 × 1.80) 
-+ (45 × 0.50) 
-+ (45 × 0.50) 
-+ (45 × 0.40)
++ (45 × 1.80) - Improve grain crops storage (Harvesting +180%)
++ (45 × 0.50) - Cultivate new cultures of rye (Harvesting +50%)
++ (45 × 0.50) - Raise agriculturists' salary (Harvesting +50%)
++ (45 × 0.40) - Cultivate new cultures of wheat (Harvesting +40%)
 = 252 food per cycle
 Step 2: Cycles per Minute
 60 / 25 = 2.4 cycles per minute
