@@ -25,7 +25,7 @@ Step 1: Food per Cycle
 Total production per cycle:
 
 45 
-+ (45 × 1.40) 
++ (45 × 1.40) - Improve grain crops treatment (Harvesting +140%)
 + (45 × 1.80) 
 + (45 × 0.50) 
 + (45 × 0.50) 
